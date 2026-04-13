@@ -14,7 +14,7 @@ export default {
   name: 'ProcessingPage',
   created() {
     setTimeout(() => {
-      this.$router.push({ name: 'EditorPage' });
+      this.$router.push({ name: 'EditorPage', params: { fileId: this.$route.params.fileId } });
     }, 3000);
   },
 };

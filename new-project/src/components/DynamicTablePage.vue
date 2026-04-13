@@ -134,7 +134,8 @@ export default {
      */
     const loadPersistedTableValues = () => {
       console.log("Loading persisted structured table from Vuex...");
-      tables.value = store.state.structuredTableData || [];
+      const persistedStructuredTableData = store.state.structuredTableData;
+      tables.value = Array.isArray(persistedStructuredTableData) ? persistedStructuredTableData : [];
     };
 
     const filteredTables = computed(() => {
@@ -168,9 +169,10 @@ export default {
  * Fetch and parse tables and tags from the document template
  */
  const loadDynamicTables = async () => {
-  // Fetch the modified document details from Vuex
-  const modifiedFileId = store.state.modifiedFileId;
-  const tempBucketName = store.state.tempBucketName;
+  // Phase 1 stabilization: prefer canonical working artifact, fallback to legacy fields
+  const workingArtifact = store.state.workingDocumentArtifact;
+  const modifiedFileId = workingArtifact?.fileId || store.state.modifiedFileId;
+  const tempBucketName = workingArtifact?.bucketName || store.state.tempBucketName;
   const userId = store.state.user?._id; // Retrieve userId from Vuex
 
   // Ensure modified document details exist
@@ -180,9 +182,15 @@ export default {
     return;
   }
 
-  const hasPersistedData = store.state.structuredTableData.length > 0;
+  const persistedStructuredTableData = store.state.structuredTableData;
+  const isStructuredTableArray = Array.isArray(persistedStructuredTableData);
+  const hasPersistedData = isStructuredTableArray
+    ? persistedStructuredTableData.length > 0
+    : !!persistedStructuredTableData &&
+      typeof persistedStructuredTableData === "object" &&
+      Object.keys(persistedStructuredTableData).length > 0;
 
-  if (!store.state.isNavigatingBack || !hasPersistedData) {
+  if (!store.state.isNavigatingBack || !hasPersistedData || !isStructuredTableArray) {
     console.log("Fetching modified document data for tables and tags...");
     try {
       // Use the modified document's details for the request
@@ -226,7 +234,6 @@ export default {
 
       // Dispatch data to Vuex
       store.dispatch("saveStructuredTableData", vuexData);
-      store.dispatch("saveEnhancedTableData", enhancedData);
 
       console.log("Vuex data dispatched:", vuexData);
       console.log("Enhanced table data:", enhancedData);

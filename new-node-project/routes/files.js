@@ -16,19 +16,27 @@ const Docxtemplater = require('docxtemplater');
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Process Dropdown Logic Endpoint
-router.post('/process-dropdown-logic', async (req, res) => {
-  const { dataModel, fileId, bucketName, userId, allTags } = req.body; // Include `allTags` in the request body
+router.post('/process-dropdown-logic', authenticateToken, async (req, res) => {
+  const { dataModel, fileId, bucketName, userId, allTags } = req.body; // `userId` is accepted for transition compatibility only
+  // Trust boundary: authenticated user identity comes from JWT, not client payload.
+  const authenticatedUserId = req.user?.userId;
 
   console.log('Received Request Body:');
   console.log('dataModel:', dataModel);
   console.log('fileId:', fileId);
   console.log('bucketName:', bucketName);
-  console.log('userId:', userId);
+  console.log('userId (client-supplied, non-authoritative):', userId);
+  console.log('authenticatedUserId (authoritative):', authenticatedUserId);
   console.log('allTags:', allTags);
 
-  if (!dataModel || !fileId || !bucketName || !userId || !allTags) { // Ensure `allTags` is provided
-    console.error('Missing required fields: dataModel, fileId, bucketName, userId, or allTags.');
-    return res.status(400).json({ error: 'dataModel, fileId, bucketName, userId, and allTags are required.' });
+  if (!authenticatedUserId) {
+    console.error('Authenticated userId missing from token payload.');
+    return res.status(401).json({ error: 'Authenticated user identity is required.' });
+  }
+
+  if (!dataModel || !fileId || !bucketName || !allTags) { // Ensure `allTags` is provided
+    console.error('Missing required fields: dataModel, fileId, bucketName, or allTags.');
+    return res.status(400).json({ error: 'dataModel, fileId, bucketName, and allTags are required.' });
   }
 
   try {
@@ -91,7 +99,7 @@ router.post('/process-dropdown-logic', async (req, res) => {
       metadata: {
         originalFileId: fileId,
         processedWith: 'dropdown',
-        userId: userId, // Include the userId in the metadata
+        userId: authenticatedUserId, // Authoritative identity from JWT
         timestamp: new Date(),
       },
     });
@@ -202,12 +210,18 @@ router.get('/fetch-template-files', async (req, res) => {
 });
 
 // Fetch Modified Document Endpoint
-router.get('/fetch-modified-template', async (req, res) => {
+router.get('/fetch-modified-template', authenticateToken, async (req, res) => {
   const { userId, originalFileId } = req.query;
+  // Trust boundary: authenticated user identity comes from JWT, not query params.
+  const authenticatedUserId = req.user?.userId;
 
   // Validate query parameters
-  if (!userId || !originalFileId) {
-    return res.status(400).json({ error: 'userId and originalFileId are required.' });
+  if (!authenticatedUserId) {
+    return res.status(401).json({ error: 'Authenticated user identity is required.' });
+  }
+
+  if (!originalFileId) {
+    return res.status(400).json({ error: 'originalFileId is required.' });
   }
 
   try {
@@ -217,7 +231,7 @@ router.get('/fetch-modified-template', async (req, res) => {
 
     // Find the latest modified document for the user
     const modifiedFile = await gridFsBucket.find({
-      'metadata.userId': userId,
+      'metadata.userId': authenticatedUserId,
       'metadata.originalFileId': originalFileId,
       'metadata.processedWith': 'dropdown',
     })
@@ -226,7 +240,7 @@ router.get('/fetch-modified-template', async (req, res) => {
     .next();
 
     if (!modifiedFile) {
-      console.error(`No modified document found for userId "${userId}" and originalFileId "${originalFileId}".`);
+      console.error(`No modified document found for authenticated userId "${authenticatedUserId}" and originalFileId "${originalFileId}".`);
       return res.status(404).json({ error: 'No modified document found.' });
     }
 

@@ -65,18 +65,27 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.loadDocument(this.fileId);
+    this.loadDocument(this.resolveFileId());
   },
   watch: {
+    '$route.params.fileId'(newRouteFileId) {
+      if (newRouteFileId || this.fileId) {
+        this.loadDocument(this.resolveFileId());
+      }
+    },
     fileId(newFileId) {
       // Watch for fileId updates and log them
       console.log('fileId updated in watch:', newFileId);
-      if (newFileId) {
-        this.loadDocument(newFileId); // Load the Word document using fileId from Vuex
+      if (this.$route.params.fileId || newFileId) {
+        this.loadDocument(this.resolveFileId()); // Load using route-first fallback logic
       }
     },
   },
   methods: {
+    // TEMP VALIDATION: route-based fileId fallback for EditorPage continuity
+    resolveFileId() {
+      return this.$route.params.fileId || this.fileId;
+    },
     async loadDocument(fileId) { 
       try {
         console.log('Attempting to load document with fileId:', fileId); // Log fileId for visibility

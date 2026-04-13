@@ -83,6 +83,27 @@ export default {
     const dynamicDateFields = ref(store.state.dynamicDateFields); // Pull dynamic date fields from Vuex
     const tableData = ref(store.state.tableData); // Pull dynamic table data from Vuex
     let currentColorIndex = 0; // To track the current color index
+    // Phase 1: prefer canonical working document artifact, keep legacy fallback during transition.
+    const resolveActiveWorkingArtifact = () => {
+      const canonicalArtifact = store.state.workingDocumentArtifact;
+      if (canonicalArtifact?.fileId && canonicalArtifact?.bucketName) {
+        return {
+          fileId: canonicalArtifact.fileId,
+          bucketName: canonicalArtifact.bucketName,
+          source: 'workingDocumentArtifact',
+        };
+      }
+
+      if (store.state.modifiedFileId && store.state.tempBucketName) {
+        return {
+          fileId: store.state.modifiedFileId,
+          bucketName: store.state.tempBucketName,
+          source: 'legacyModifiedState',
+        };
+      }
+
+      return null;
+    };
 
     // Access toolbarTitle from Vuex
     const toolbarTitle = computed(() => store.state.toolbarTitle); // Reactive access to toolbarTitle
@@ -117,33 +138,6 @@ const collapseChildren = (children, collapsed) => {
         collapseChildren(child.children, collapsed);
       }
     });
-  }
-};
-
-/**
- * Reusable Fetch Function
- * Fetches the modified template content using originalFileId and userId
- */
- const fetchTemplateContent = async (originalFileId, userId) => {
-  try {
-    if (!originalFileId || !userId) {
-      throw new Error('Missing originalFileId or userId. Cannot fetch the modified template content.');
-    }
-
-    // Fetch the modified template data using the new endpoint
-    const response = await axios.get('/api/files/fetch-modified-template', {
-      params: {
-        originalFileId, // Correct parameter name
-        userId,         // Ensure we fetch the correct user's modified document
-      },
-      responseType: 'arraybuffer', // Handle binary data
-    });
-
-    console.log('Fetched modified template file successfully:', response);
-    return response.data; // Return the binary data for further processing
-  } catch (error) {
-    console.error('Error fetching modified template content:', error);
-    throw error; // Re-throw the error for the calling component to handle
   }
 };
 
@@ -224,29 +218,35 @@ onBeforeRouteLeave((to, from, next) => {
  */
  const fetchTemplateAndParseSections = async () => {
   try {
-    const originalFileId = store.state.selectedTemplate.fileId; // Original template's fileId
-    const originalBucketName = store.state.selectedTemplate.bucketName; // Original bucket name
+    const originalFileId = store.state.selectedTemplate?.fileId; // Original template's fileId
+    const originalBucketName = store.state.selectedTemplate?.bucketName; // Original bucket name
     const userId = store.state.user?._id; // User ID from Vuex
+    const activeWorkingArtifact = resolveActiveWorkingArtifact();
 
-    // Validate the required data
-    if (!originalFileId || !originalBucketName || !userId) {
-      console.error('Missing original template details or user ID.');
-      alert('Original template details are missing. Please try again.');
+    // Canonical/legacy working artifact can drive this stage; original template is only needed for fallback.
+    if (!userId) {
+      console.error('Missing user ID.');
+      alert('Required data is missing. Please try again.');
       return;
     }
 
     let content;
     let isModified = false;
 
-    if (store.state.modifiedFileId && store.state.tempBucketName) {
-      // Scenario 1: Fetch modified template
+    if (activeWorkingArtifact) {
       console.log('Fetching the modified template content:', {
-        originalFileId,
-        userId,
+        fileId: activeWorkingArtifact.fileId,
+        bucketName: activeWorkingArtifact.bucketName,
+        source: activeWorkingArtifact.source,
       });
-      content = await fetchTemplateContent(originalFileId, userId);
+      content = await fetchOriginalTemplateContent(activeWorkingArtifact.fileId, activeWorkingArtifact.bucketName);
       isModified = true;
     } else {
+      if (!originalFileId || !originalBucketName) {
+        console.error('Missing original template details for fallback fetch.');
+        alert('Original template details are missing. Please try again.');
+        return;
+      }
       // Scenario 2: Fetch original template
       console.log('Fetching the original template content:', {
         fileId: originalFileId,
@@ -471,23 +471,24 @@ const prepareFinalOutput = () => {
  */
  const submitData = async () => {
   try {
-    // Fetch Vuex data
-    const modifiedFileId = store.state.modifiedFileId; // File ID for the modified template
-    const tempBucketName = store.state.tempBucketName; // Temporary bucket name
+    const activeWorkingArtifact = resolveActiveWorkingArtifact();
     const userId = store.state.user?._id; // User ID from Vuex
 
-    // Validate Vuex data
-    if (!modifiedFileId || !tempBucketName || !userId) {
-      console.error('Missing Vuex data for fetching the modified template.');
+    // Validate required auth/context data
+    if (!userId) {
+      console.error('Missing user context.');
       alert('Required data is missing. Please try again.');
       return;
     }
 
-    console.log('Using Vuex data for modified template:', {
-      modifiedFileId,
-      tempBucketName,
-      userId,
-    });
+    if (activeWorkingArtifact) {
+      console.log('Using working template artifact identity:', {
+        fileId: activeWorkingArtifact.fileId,
+        bucketName: activeWorkingArtifact.bucketName,
+        source: activeWorkingArtifact.source,
+        userId,
+      });
+    }
 
     // Update sections in Vuex
     store.dispatch("updateSections", sections.value);
@@ -608,23 +609,36 @@ const prepareFinalOutput = () => {
 
       console.log('Final data before sending to docxtemplater:', data);
 
-      // Fetch the original template's fileId and userId
-      const originalFileId = store.state.selectedTemplate.fileId; // Original template's fileId
+      // Fetch the original/modified template based on current state
+      const originalFileId = store.state.selectedTemplate?.fileId; // Original template's fileId
+      const originalBucketName = store.state.selectedTemplate?.bucketName; // Original template's bucketName
       const userIdFinal = store.state.user?._id; // User ID from Vuex
-
-      if (!originalFileId || !userIdFinal) {
-        console.error("Original file details missing in Vuex store.");
-        alert("Original document details are missing. Please retry the process.");
+      if (!userIdFinal) {
+        console.error("User details missing in Vuex store.");
+        alert("Required data is missing. Please retry the process.");
         return;
       }
 
-      console.log('Fetching the modified template content using originalFileId and userId:', {
-        originalFileId,
-        userId: userIdFinal,
-      });
-
-      // Fetch the modified template content using the original fileId and userId
-      const content = await fetchTemplateContent(originalFileId, userIdFinal);
+      let content;
+      if (activeWorkingArtifact) {
+        console.log('Fetching modified template content using active working artifact identity:', {
+          fileId: activeWorkingArtifact.fileId,
+          bucketName: activeWorkingArtifact.bucketName,
+          source: activeWorkingArtifact.source,
+        });
+        content = await fetchOriginalTemplateContent(activeWorkingArtifact.fileId, activeWorkingArtifact.bucketName);
+      } else {
+        if (!originalFileId || !originalBucketName) {
+          console.error("Original file details missing in Vuex store for fallback fetch.");
+          alert("Original document details are missing. Please retry the process.");
+          return;
+        }
+        console.log('Modified state missing. Falling back to original template identity:', {
+          fileId: originalFileId,
+          bucketName: originalBucketName,
+        });
+        content = await fetchOriginalTemplateContent(originalFileId, originalBucketName);
+      }
 
       // Use PizZip and Docxtemplater to process the document
       const zip = new PizZip(content);
@@ -683,7 +697,7 @@ const prepareFinalOutput = () => {
 
       // If processedFile is a valid Blob, you can proceed to upload it
       const uploadFormData = new FormData();
-      uploadFormData.append('file', processedFile);  // Add processed file
+      uploadFormData.append('file', processedFile, file.name || 'GeneratedDocument_SOW.docx');  // Add processed file with explicit filename
       uploadFormData.append('folderPath', selectedTemplate.value.path); // Include folderPath again if needed
 
       console.log('Uploading the processed document to the server.');

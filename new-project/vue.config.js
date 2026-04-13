@@ -3,6 +3,10 @@ module.exports = {
   publicPath: './',  // Use `/` to serve assets from the root (adjust if you are deploying to a subdirectory)
   devServer: {
     port: 8082,  // Port for the development server
+    historyApiFallback: {
+      index: '/index.html',
+      disableDotRule: true,
+    },
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:5001',  // Proxy API calls to your backend

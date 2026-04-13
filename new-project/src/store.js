@@ -52,6 +52,8 @@ export default createStore({
     modifiedFileId: null,
     tempBucketName: null,
     modifiedFilename: null,
+    // Phase 1 stabilization: canonical post-dropdown working artifact identity
+    workingDocumentArtifact: null,
     tagsState: {}, // To store tags with their placeholders as values
     tableTags: [], // New state for table tags
     allTags: {}, // Holds all tags with their tag names as values
@@ -113,6 +115,9 @@ export default createStore({
     },
     setModifiedFilename(state, filename) {
       state.modifiedFilename = filename;
+    },
+    setWorkingDocumentArtifact(state, artifact) {
+      state.workingDocumentArtifact = artifact;
     },
     setSelectedTemplate(state, template) {
       state.selectedTemplate = template;
@@ -267,6 +272,10 @@ export default createStore({
       state.dynamicTitle = '';
       state.showSnackbar = false; // Reset snackbar
       state.snackbarMessage = ''; // Reset message
+      state.modifiedFileId = null;
+      state.tempBucketName = null;
+      state.modifiedFilename = null;
+      state.workingDocumentArtifact = null;
       state.tooltipPlaceholders = {};
       state.tooltipTags = {};
       state.collatedTags = {};
@@ -308,6 +317,9 @@ export default createStore({
 
     saveTableTags({ commit }, tags) {
       commit('setTableTags', tags);
+    },
+    setWorkingDocumentArtifact({ commit }, artifact) {
+      commit('setWorkingDocumentArtifact', artifact);
     },
 
     updateTagsState({ commit }, tags) {
@@ -453,6 +465,7 @@ export default createStore({
         'year', 
         'quarter', 
         'selectedTemplate',
+        'workingDocumentArtifact',
         'showSnackbar', // Persist these if needed
         'snackbarMessage',
         'dynamicTitle',

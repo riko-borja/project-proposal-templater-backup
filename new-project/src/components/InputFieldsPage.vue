@@ -500,6 +500,44 @@ export default defineComponent({
       return tooltip;
     };
 
+    const isValidDropdownOption = (option) => {
+      return !!option && typeof option === 'object' && typeof option.label === 'string';
+    };
+
+    const normalizeDropdownMenus = (menus) => {
+      if (!Array.isArray(menus)) return [];
+
+      return menus
+        .map((dropdown) => {
+          if (!dropdown || typeof dropdown !== 'object') return null;
+          if (typeof dropdown.id !== 'string' || typeof dropdown.title !== 'string') return null;
+          if (!Array.isArray(dropdown.options)) return null;
+
+          const options = dropdown.options
+            .filter(isValidDropdownOption)
+            .map((option) => ({
+              ...option,
+              children: Array.isArray(option.children) ? option.children : [],
+            }));
+
+          if (options.length !== dropdown.options.length) return null;
+
+          const selectedOption =
+            typeof dropdown.selectedOption === 'string' &&
+            options.some((option) => option.label === dropdown.selectedOption)
+              ? dropdown.selectedOption
+              : '';
+
+          return {
+            ...dropdown,
+            options,
+            selectedOption,
+            isNested: Boolean(dropdown.isNested),
+          };
+        })
+        .filter(Boolean);
+    };
+
     const dummyUseOfIndex = () => {
       // Placeholder function, implement as needed
     };
@@ -520,6 +558,8 @@ export default defineComponent({
       });
 
       dropdownMenus.value.forEach((dropdown) => {
+        if (!dropdown || typeof dropdown.title !== 'string') return;
+
         // Transform "Scope Of Work" into "Scope_Of_Work"
         const normalizedTitle = dropdown.title
           .split(' ')
@@ -537,7 +577,8 @@ export default defineComponent({
           dropdown.buttonTooltip = buttonTooltip;
         }
 
-        dropdown.options.forEach((option) => {
+        const dropdownOptions = Array.isArray(dropdown.options) ? dropdown.options : [];
+        dropdownOptions.forEach((option) => {
           const optionTooltip = tooltipTags.value[`input_tooltip:${option.id}`];
           console.log(
             `Tooltip for dropdown option "${option.id}":`,
@@ -570,13 +611,20 @@ export default defineComponent({
         value: store.state.dynamicInputs.find((stateInput) => stateInput.id === input.id)?.value || '',
       }));
 
-      // Populate dropdown menus from Vuex
-      dropdownMenus.value = store.state.dropdownMenus.map((dropdown) => ({
-        ...dropdown,
-        selectedOption:
-          store.state.dropdownMenus.find((stateDropdown) => stateDropdown.id === dropdown.id)
-            ?.selectedOption || '',
-      }));
+      // Populate dropdown menus from Vuex, but only if schema-safe for this page
+      const persistedDropdownMenus = Array.isArray(store.state.dropdownMenus)
+        ? store.state.dropdownMenus
+        : [];
+      const normalizedDropdownMenus = normalizeDropdownMenus(persistedDropdownMenus);
+      const hasMalformedDropdownState =
+        persistedDropdownMenus.length > 0 &&
+        normalizedDropdownMenus.length !== persistedDropdownMenus.length;
+
+      if (hasMalformedDropdownState) {
+        console.warn('Malformed persisted dropdown state detected. Falling back to template reload.');
+      }
+
+      dropdownMenus.value = normalizedDropdownMenus;
 
       // Populate dynamic date fields from Vuex
       dynamicDateFields.value = store.state.dynamicDateFields.map((dateField) => {
@@ -591,6 +639,8 @@ export default defineComponent({
           hyperlink: dateField.hyperlink || null, // Include hyperlink if exists
         };
       });
+
+      return { hasMalformedDropdownState };
     };
 
     const handleMainDropdownChange = (value, changedDropdown, dropdownIndex) => {
@@ -608,7 +658,14 @@ export default defineComponent({
   // Update the selectedOption
   changedDropdown.selectedOption = value;
 
-  const selectedOption = changedDropdown.options.find(
+  const dropdownOptions = Array.isArray(changedDropdown.options) ? changedDropdown.options : [];
+  if (!Array.isArray(changedDropdown.options)) {
+    console.error(`Dropdown options are malformed for dropdown: ${changedDropdown.id}`);
+    dropdownMenus.value.splice(dropdownIndex + 1);
+    return;
+  }
+
+  const selectedOption = dropdownOptions.find(
     (option) => option.label === value
   );
 
@@ -665,7 +722,8 @@ export default defineComponent({
   }
 
   // Process all options for the dropdown
-  dropdown.options.forEach((option) => {
+  const options = Array.isArray(dropdown.options) ? dropdown.options : [];
+  options.forEach((option) => {
     const optionLabel = option.label; // Keep spaces in option labels
     const optionKey = dropdown.isNested
       ? `Nested_select_${dropdownTitle} ${optionLabel}` // Preserve spaces in option
@@ -983,10 +1041,7 @@ const loadTemplateInputs = async () => {
 
   console.log('Prepared Dynamic Data:', JSON.stringify(dynamicData, null, 2));
 
-  const dropdownData = dropdownMenus.value.map((dropdown) => ({
-    id: dropdown.id,
-    selectedOption: dropdown.selectedOption,
-  }));
+  const dropdownData = normalizeDropdownMenus(dropdownMenus.value);
 
   console.log('Prepared Dropdown Data:', JSON.stringify(dropdownData, null, 2));
 
@@ -1011,7 +1066,8 @@ const loadTemplateInputs = async () => {
       model[selectedKey] = true;
     }
 
-    dropdown.options.forEach((option) => {
+    const dropdownOptions = Array.isArray(dropdown.options) ? dropdown.options : [];
+    dropdownOptions.forEach((option) => {
       const optionLabel = option.label;
       const optionKey = dropdown.isNested
         ? `Nested_select_${dropdownTitle} ${optionLabel}`
@@ -1045,12 +1101,17 @@ const loadTemplateInputs = async () => {
 
     // Send dataModel to backend for processing
     console.log('Sending dataModel to backend...');
+    const token = localStorage.getItem('jwtToken');
     const response = await axios.post('/api/files/process-dropdown-logic', {
       dataModel, 
       fileId,
       bucketName,
       userId,
       allTags: store.state.allTags,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (response.status === 200) {
@@ -1058,6 +1119,12 @@ const loadTemplateInputs = async () => {
       store.commit('setModifiedFileId', response.data.modifiedFileId);
       store.commit('setTempBucketName', response.data.tempBucketName);
       store.commit('setModifiedFilename', response.data.modifiedFilename);
+      // Phase 1 stabilization: canonical post-dropdown working artifact identity
+      store.dispatch('setWorkingDocumentArtifact', {
+        fileId: response.data.modifiedFileId,
+        bucketName: response.data.tempBucketName,
+        source: fileId,
+      });
       router.push({ name: 'dynamicTablePage' });
     } else {
       throw new Error('Failed to process the document.');
@@ -1074,7 +1141,7 @@ const loadTemplateInputs = async () => {
     // 7. Lifecycle Hooks
     // -------------------------
     onMounted(async () => {
-      loadPersistedValues();
+      const { hasMalformedDropdownState } = loadPersistedValues();
       const selectedTemplate = store.state.selectedTemplate;
 
       // Redirect to UserOptionsPage if no template is selected
@@ -1089,7 +1156,7 @@ const loadTemplateInputs = async () => {
         store.state.dropdownMenus.length > 0 ||
         store.state.dynamicDateFields.length > 0;
 
-      if (!store.state.isNavigatingBack || !hasPersistedValues) {
+      if (!store.state.isNavigatingBack || !hasPersistedValues || hasMalformedDropdownState) {
         await loadTemplateInputs();
       } else {
         loadPersistedValues(); // Populate fields with values from Vuex
