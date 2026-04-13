@@ -1,0 +1,27 @@
+@startuml
+participant User
+participant LogIn
+participant API
+participant Vuex
+participant Router
+participant LocalStorage
+
+User -> LogIn : Fill username and password
+User -> LogIn : Click "Login"
+LogIn -> API : POST /login with credentials
+API -> LogIn : Respond with token and user data (or error)
+alt Successful login
+    LogIn -> LocalStorage : Store username and JWT token
+    LogIn -> Vuex : setUser(user)
+    alt First login
+        LogIn -> Router : Navigate to welcomePage
+    else Admin user
+        LogIn -> Router : Navigate to adminDashboard
+    else Regular user
+        LogIn -> Router : Navigate to userOptionsPage
+    end
+else Login failed
+    LogIn -> LogIn : Set snackbarMessage ("Invalid credentials")
+    LogIn -> LogIn : Show snackbar
+end
+@enduml

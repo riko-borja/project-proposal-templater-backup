@@ -1,0 +1,28 @@
+@startuml checkbox-page-process-flow
+participant "User" as User
+participant "Checkbox Page" as CheckboxPage
+participant "Vuex Store" as Vuex
+participant "API Server" as Server
+participant "Router" as Router
+
+User -> CheckboxPage : Opens Checkbox Page
+CheckboxPage -> Vuex : Checks if persisted sections exist
+
+alt Sections exist in Vuex
+    CheckboxPage -> Vuex : Load persisted sections data
+else No persisted sections
+    CheckboxPage -> Server : Fetch and parse template sections
+    Server --> CheckboxPage : Receive parsed sections
+    CheckboxPage -> Vuex : Store parsed sections
+end
+
+User -> CheckboxPage : Toggles checkboxes
+CheckboxPage -> Vuex : Updates section check status
+
+User -> CheckboxPage : Clicks "Start Processing"
+
+CheckboxPage -> Vuex : Collects section data
+CheckboxPage -> Vuex : Collects input, dropdown, and date field data
+
+CheckboxPage -> Router : Redirects to Processing Page
+@enduml

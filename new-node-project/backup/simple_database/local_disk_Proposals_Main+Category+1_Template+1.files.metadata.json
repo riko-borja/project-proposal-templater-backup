@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"filename":{"$numberInt":"1"},"uploadDate":{"$numberInt":"1"}},"name":"filename_1_uploadDate_1","background":false}],"uuid":"080d625965584566b30cae1010cc5ef7","collectionName":"local_disk_Proposals_Main Category 1_Template 1.files","type":"collection"}

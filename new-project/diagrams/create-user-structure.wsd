@@ -1,0 +1,31 @@
+@startuml create-user-structure
+title Create User Process
+
+start
+
+:Open "Create User" form;
+
+:Enter user details;
+note right
+  - **Username:** Unique identifier for the user.
+  - **Password:** Secure password for account access.
+  - **Confirm Password:** Re-enter password for verification.
+  - **Role:** Defines user permissions (e.g., Admin, Editor, Viewer).
+  - **Email:** User's contact email address.
+  - **Document Role:** Specifies access level to documents.
+end note
+
+:Click "Create User" button;
+
+:System validates entered details;
+
+if (Validation Successful?) then (yes)
+    :Create user account successfully;
+    :Display confirmation message;
+else (no)
+    :Display error message indicating the issue;
+    :Prompt to correct errors;
+endif
+
+stop
+@enduml

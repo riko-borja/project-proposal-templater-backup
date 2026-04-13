@@ -1,0 +1,35 @@
+@startuml file-explorer-structure
+start
+:Display File Explorer page;
+:Render folder tree in the left pane;
+:Render file list in the right pane;
+:Show "Upload to std_ Folder" section;
+
+if (Is folder tree loaded successfully?) then (yes)
+  if (Is a folder selected?) then (yes)
+    :Fetch and display files in the right pane;
+    if (Fetch successful?) then (yes)
+      :Files displayed;
+    else (no)
+      :Display error message "Failed to load files";
+      note right
+        User can retry loading or refresh the page.
+      end note
+    endif
+  else (no)
+    :Display "No files available";
+  endif
+else (no)
+  :Display error message "Failed to load folder tree";
+  note right
+    Prompt user to retry loading the folder tree.
+  end note
+endif
+
+note right
+  User can select a folder, interact with files,
+  or perform actions like upload, download, or delete.
+end note
+
+stop
+@enduml

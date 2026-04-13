@@ -1,0 +1,25 @@
+@startuml input-fields-structure
+start
+:Display "Input Fields Page";
+:Show app bar with title;
+:Render form components;
+note right
+  - Dynamic input fields
+  - Dropdown menus
+  - Date pickers
+end note
+
+:Display "Next" button with tooltip;
+
+if (Are all required fields filled?) then (yes)
+  :Enable "Next" button;
+  stop
+else (no)
+  note right
+    "Next" button remains disabled until
+    all required fields are completed.
+  end note
+endif
+
+stop
+@enduml

@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"files_id":{"$numberInt":"1"},"n":{"$numberInt":"1"}},"name":"files_id_1_n_1","background":true,"unique":true}],"uuid":"7b1e3d110c6b4a769913dc66ece46eba","collectionName":"local_disk_Proposals_Main Category 2_Sub Category 2_Sub Template 2.chunks","type":"collection"}

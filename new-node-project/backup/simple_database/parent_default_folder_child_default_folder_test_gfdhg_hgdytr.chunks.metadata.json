@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"files_id":{"$numberInt":"1"},"n":{"$numberInt":"1"}},"name":"files_id_1_n_1","background":true,"unique":true}],"uuid":"fc12f63e03bf4c31a4ccb1817fb91d82","collectionName":"parent_default_folder_child_default_folder_test_gfdhg_hgdytr.chunks","type":"collection"}

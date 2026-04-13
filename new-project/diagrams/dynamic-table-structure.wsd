@@ -1,0 +1,25 @@
+@startuml dynamic-table-structure
+start
+:Display "Dynamic Table Page";
+:Show app bar with title;
+
+:Render dynamic table structure;
+note right
+  - Table headers and rows
+  - Input fields for placeholders
+end note
+
+:Display "Next" button;
+
+if (Are all required placeholders filled?) then (yes)
+  :Enable "Next" button;
+  stop
+else (no)
+  note right
+    "Next" button remains disabled until
+    all placeholders are completed.
+  end note
+endif
+
+stop
+@enduml

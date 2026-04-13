@@ -1,0 +1,35 @@
+@startuml admin-dashboard-process-flow
+participant "Admin User" as Admin
+participant "Admin Dashboard Page" as Dashboard
+participant "Server" as Server
+participant "Router" as Router
+participant "Dialog Component" as Dialog
+
+Admin -> Dashboard : Opens Admin Dashboard
+Dashboard -> Server : Fetches metrics and user activity data
+Server --> Dashboard : Returns data for charts and tables
+
+alt Selects "Upload Standard Documents"
+    Admin -> Dialog : Opens upload dialog
+    Dialog -> Server : Sends document upload request
+    Server --> Dialog : Confirms upload success or failure
+end
+
+alt Selects "View Users"
+    Admin -> Dialog : Opens view users dialog
+    Dialog -> Server : Fetches user data
+    Server --> Dialog : Returns user data
+end
+
+alt Selects "Create User"
+    Admin -> Dialog : Opens create user dialog
+    Dialog -> Server : Sends new user creation request
+    Server --> Dialog : Confirms user creation or failure
+end
+
+alt Selects "File Explorer"
+    Admin -> Router : Navigates to File Explorer Page
+end
+
+Admin -> Dashboard : Views updated charts and metrics
+@enduml

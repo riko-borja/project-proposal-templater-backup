@@ -1,0 +1,31 @@
+@startuml upload-template-structure
+start
+:User selects a document file;
+if (Is a file selected?) then (yes)
+  :User enters the version number;
+  if (Is version number entered?) then (yes)
+    :User clicks "Upload" button;
+    :Component displays a snackbar for status messages;
+    note right
+      Snackbar shows "Upload successful"
+      or "Upload failed" based on the result.
+    end note
+
+    if (Upload successful?) then (yes)
+      :Display "Upload successful" message;
+      stop
+    else (no)
+      :Display "Upload failed" message;
+      :Offer retry option;
+      stop
+    endif
+  else (no)
+    :Prompt user to enter version number;
+    stop
+  endif
+else (no)
+  :Prompt user to select a file;
+  stop
+endif
+
+@enduml

@@ -1,0 +1,43 @@
+@startuml full-app-process-flow
+participant "User" as User
+participant "Vue Component" as Component
+participant "Vuex Store" as Vuex
+participant "API Server" as Server
+participant "Database (MongoDB)" as Database
+participant "GridFS (File Storage)" as GridFS
+
+User -> Component : Interacts with client app
+Component -> Vuex : Fetches/updates state
+
+alt User triggers data fetching
+    Component -> Server : Sends API request
+    Server -> Database : Reads data
+    Server --> Component : Responds with data
+end
+
+alt User uploads a file
+    Component -> Server : Sends file upload request
+    Server -> GridFS : Stores file
+    Server --> Component : Confirms file upload
+end
+
+alt User edits a document
+    Component -> Vuex : Prepares data for server
+    Component -> Server : Requests document for editing
+    Server -> GridFS : Retrieves document
+    Server --> Component : Sends document URL/token
+end
+
+alt User saves changes
+    Component -> Server : Submits updated document
+    Server -> GridFS : Saves modified document
+    Server --> Component : Confirms save
+end
+
+alt User logs in
+    Component -> Server : Sends login request
+    Server -> Database : Verifies user credentials
+    Server --> Component : Responds with JWT token
+end
+
+@enduml

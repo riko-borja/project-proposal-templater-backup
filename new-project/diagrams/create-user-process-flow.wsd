@@ -1,0 +1,23 @@
+@startuml create-user-process-flow
+participant User
+participant CreateUser
+participant API
+participant Snackbar
+
+User -> CreateUser : Enter details in form fields
+CreateUser -> CreateUser : Validate form input
+alt Passwords do not match
+    CreateUser -> Snackbar : Show "Passwords do not match!"
+else Valid input
+    User -> CreateUser : Click "Create User"
+    CreateUser -> API : Send POST request to /api/register
+    alt Success response
+        API -> CreateUser : Return success
+        CreateUser -> Snackbar : Show "User created successfully!"
+        CreateUser -> CreateUser : Clear form fields
+    else Error response
+        API -> CreateUser : Return error
+        CreateUser -> Snackbar : Show "Error creating user. Please try again."
+    end
+end
+@enduml

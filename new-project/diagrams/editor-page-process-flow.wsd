@@ -1,0 +1,20 @@
+@startuml editor-page-process-flow
+participant "User" as User
+participant "EditorPage" as EditorPage
+participant "Vuex Store" as Vuex
+participant "Backend System" as API
+participant "Router" as Router
+
+User -> EditorPage : Accesses EditorPage
+EditorPage -> Vuex : Gets fileId from Vuex
+EditorPage -> API : Requests document URL with fileId
+API -> EditorPage : Returns document URL with token
+alt Document URL found
+    EditorPage -> EditorPage : Sets document config and loads editor
+else Document URL not found
+    EditorPage -> EditorPage : Displays loading message
+end
+User -> EditorPage : Clicks "Go Back to Selecting Template"
+EditorPage -> Vuex : Resets Vuex store
+EditorPage -> Router : Navigates to UserOptionsPage
+@enduml

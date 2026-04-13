@@ -1,0 +1,29 @@
+@startuml user-options-process-flow
+participant User
+participant "User Options Page" as UserOptions
+participant "Server API" as API
+participant "State Management" as State
+participant "Navigation System" as Router
+
+User -> UserOptions : View list of templates
+UserOptions -> API : Request template list from server
+API -> UserOptions : Return template list
+
+User -> UserOptions : Selects a template
+
+alt Template selected
+    User -> UserOptions : Clicks "Go to Input Fields Page"
+    UserOptions -> State : Store selected template
+    UserOptions -> Router : Navigate to Input Fields Page
+    note right of Router
+      User is directed to the Input Fields Page to proceed
+    end note
+else No template selected
+    UserOptions -> User : Prompt to select a template
+    note right of User
+      User needs to select a template to continue
+    end note
+end
+
+@enduml
+

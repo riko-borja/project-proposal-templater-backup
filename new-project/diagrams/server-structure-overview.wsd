@@ -1,0 +1,45 @@
+@startuml server-structure-overview-ver2
+package "Server (Node.js)" {
+    component "Main Server Logic" as ServerLogic
+    component "Routes/Endpoints" as Endpoints
+    component "Middleware" as Middleware
+    component "Authentication" as Auth
+    component "File Handling (GridFS)" as GridFS
+    component "Database (MongoDB)" as Database
+}
+
+package "Client" {
+    actor "User" as User
+}
+
+User --> ServerLogic : Interacts with
+ServerLogic --> Endpoints : Routes user requests
+ServerLogic --> Middleware : Processes data and checks permissions
+ServerLogic --> Auth : Verifies user identity (JWT)
+ServerLogic --> Database : Reads/writes user data
+ServerLogic --> GridFS : Handles file uploads/downloads
+
+note right of Auth
+  Verifies user identity using
+  JSON Web Tokens (JWT) for secure
+  authentication and session handling.
+end note
+
+note right of GridFS
+  Handles storage and retrieval of large
+  documents and media files efficiently.
+end note
+
+note right of Database
+  Stores user data, logs, and application
+  data required for business logic.
+end note
+
+note bottom of Middleware
+  Includes:
+  - Request validation
+  - Error handling
+  - Logging mechanisms
+end note
+
+@enduml

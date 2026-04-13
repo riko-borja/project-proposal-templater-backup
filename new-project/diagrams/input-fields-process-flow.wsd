@@ -1,0 +1,30 @@
+@startuml input-fields-process-flow
+participant "User" as User
+participant "Input Fields Page" as InputPage
+participant "Vuex Store" as Vuex
+participant "Router" as Router
+participant "API Server" as Server
+
+User -> InputPage : Opens Input Fields Page
+InputPage -> Vuex : Checks selected template in store
+
+alt Template exists in Vuex
+    InputPage -> Vuex : Load persisted input, dropdown, and date field values
+else Template doesn't exist
+    InputPage -> Server : Fetch template data
+    Server --> InputPage : Receive template input fields
+    InputPage -> Vuex : Store fetched data in Vuex
+end
+
+User -> InputPage : Fills out dynamic input fields
+User -> InputPage : Selects dropdown options
+User -> InputPage : Picks dates using date pickers
+
+alt All fields filled
+    User -> InputPage : Clicks "Next"
+    InputPage -> Vuex : Store filled input, dropdown, and date data
+    InputPage -> Router : Redirects to Dynamic Table Page
+else Missing required fields
+    InputPage -> User : Shows error message tooltip
+end
+@enduml

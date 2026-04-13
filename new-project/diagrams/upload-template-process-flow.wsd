@@ -1,0 +1,23 @@
+@startuml upload-template-process-flow
+participant User
+participant UploadTemplate
+participant API
+participant Snackbar
+
+User -> UploadTemplate : Selects a document file
+User -> UploadTemplate : Enters version number
+alt Form is valid
+    User -> UploadTemplate : Clicks "Upload"
+    UploadTemplate -> API : Send POST request to /api/upload-template
+    alt Success response
+        API -> UploadTemplate : Return success
+        UploadTemplate -> Snackbar : Show "File uploaded successfully. Version: X"
+        UploadTemplate -> UploadTemplate : Clear file and version input
+    else Error response
+        API -> UploadTemplate : Return error
+        UploadTemplate -> Snackbar : Show error message
+    end
+else Form is invalid
+    UploadTemplate -> Snackbar : Show "Please select a file and enter a version"
+end
+@enduml

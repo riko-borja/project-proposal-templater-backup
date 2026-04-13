@@ -1,0 +1,61 @@
+@startuml server-process-flow
+participant "Client" as Client
+participant "Node.js Server" as Server
+participant "MongoDB" as DB
+participant "GridFS Bucket" as GridFS
+participant "JWT Auth" as JWT
+
+Client -> Server : Requests Login
+Server -> DB : Check User Credentials
+alt Valid credentials
+    Server -> JWT : Generate Token
+    JWT --> Server : Return JWT Token
+    Server --> Client : Responds with Token & Login Success
+else Invalid credentials
+    Server -> Server : Log error details
+    Server --> Client : Responds with Error (Invalid credentials)
+end
+
+Client -> Server : Uploads File
+Server -> JWT : Verify Token
+alt Token valid
+    Server -> GridFS : Upload file
+    GridFS --> Server : File stored success
+    Server --> Client : Responds with Upload Success
+else Token invalid
+    Server --> Client : Responds with Unauthorized Error
+    note right
+      Token verification failed.
+      Client should re-login.
+    end note
+end
+
+Client -> Server : Requests Document Fetch
+Server -> JWT : Verify Token
+alt Token valid
+    Server -> GridFS : Fetch document
+    GridFS --> Server : Return document stream
+    Server --> Client : Responds with document
+else Token invalid
+    Server --> Client : Responds with Unauthorized Error
+    note right
+      Token invalid or expired.
+      Suggest re-authentication.
+    end note
+end
+
+Client -> Server : Requests User Management Action (Register/Update/Delete)
+Server -> DB : Perform User Operation
+DB --> Server : Operation Success/Failure
+Server --> Client : Responds with Operation Result
+
+Client -> Server : Logs Button Click
+Server -> DB : Save Click Log
+DB --> Server : Log Saved
+Server --> Client : Responds with Log Confirmation
+
+Client -> Server : Requests Active User Check
+Server -> DB : Fetch Active User Logs
+DB --> Server : Return Active Users
+Server --> Client : Responds with Active User Data
+@enduml

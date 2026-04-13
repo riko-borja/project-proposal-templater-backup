@@ -1,0 +1,9 @@
+{
+  "watch": ["dist", "server.js", "routes", "middleware", ".env"],
+  "ext": "js,html,css",
+  "exec": "node server.js",
+  "events": {
+    "restart": "echo Server is restarting due to changes...",
+    "crash": "echo Server crashed! Attempting to restart..."
+  }
+}

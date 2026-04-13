@@ -1,0 +1,12 @@
+@startuml processing-page-process-flow
+participant "User" as User
+participant "Processing Page" as ProcessingPage
+participant "Router" as Router
+
+User -> ProcessingPage : Accesses Processing Page
+ProcessingPage -> ProcessingPage : Shows progress indicator and message
+
+alt Wait for processing
+    ProcessingPage -> Router : Navigates to EditorPage after delay
+end
+@enduml

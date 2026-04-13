@@ -1,0 +1,48 @@
+@startuml full-app-structure-overview
+package "Client (Vue.js App)" {
+    component "AdminDashboard" as AdminDashboard
+    component "DynamicTablePage" as DynamicTable
+    component "CheckboxPage" as CheckboxPage
+    component "ProcessingPage" as ProcessingPage
+    component "EditorPage" as EditorPage
+    component "FileExplorer" as FileExplorer
+    component "CreateUserPage" as CreateUser
+    component "UploadTemplatePage" as UploadTemplate
+    component "ViewUsersPage" as ViewUsers
+    database "Vuex Store" as Vuex
+}
+
+package "Server (Node.js)" {
+    component "Main Server Logic" as ServerLogic
+    component "Routes/Endpoints" as Endpoints
+    component "Middleware" as Middleware
+    component "Authentication (JWT)" as Auth
+    component "File Handling (GridFS)" as GridFS
+    component "Database (MongoDB)" as Database
+}
+
+User -> AdminDashboard : Accesses the dashboard
+AdminDashboard --> Vuex : Fetches and updates state
+AdminDashboard --> DynamicTable : Opens Dynamic Table Page
+DynamicTable --> Vuex : Loads or saves structured table data
+DynamicTable --> ServerLogic : Fetches table template data
+
+CheckboxPage --> Vuex : Loads sections data
+CheckboxPage --> ServerLogic : Submits user-selected data
+
+ProcessingPage --> ServerLogic : Starts processing request
+ProcessingPage -> EditorPage : Redirects user after processing
+
+EditorPage --> ServerLogic : Loads document for editing
+EditorPage --> Auth : Verifies user identity
+
+FileExplorer --> ServerLogic : Fetches file list
+FileExplorer --> GridFS : Uploads or downloads files
+
+CreateUserPage --> ServerLogic : Creates a new user
+UploadTemplate --> ServerLogic : Uploads template file
+ViewUsersPage --> ServerLogic : Fetches registered users
+
+ServerLogic --> Database : Reads/writes user and document data
+ServerLogic --> GridFS : Handles file storage/retrieval
+@enduml

@@ -1,0 +1,30 @@
+@startuml simplified-login-process
+actor User
+box "Login Process"
+  participant "Login Page" as LogIn
+  participant "System" as API
+  participant "Page Redirect" as Router
+end box
+
+User -> LogIn : 1. Enter credentials
+User -> LogIn : 2. Clicks "Login"
+LogIn -> API : 3. Verifies login details
+API -> LogIn : 4. Returns result (success/failure)
+
+alt Successful login
+    LogIn -> User : 5. Login successful
+    LogIn -> Router : 6. Redirects to appropriate page
+    note right of Router
+      User is taken to:
+      - Welcome Page (new user)
+      - Admin Dashboard (admin)
+      - Options Page (regular user)
+    end note
+else Failed login
+    LogIn -> User : 5. Shows "Invalid login" message
+    User <- LogIn : Retry allowed
+end
+
+@enduml
+
+

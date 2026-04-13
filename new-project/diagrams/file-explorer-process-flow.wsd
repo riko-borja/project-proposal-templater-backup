@@ -1,0 +1,41 @@
+@startuml file-explorer-process-flow
+participant User
+participant FileExplorer
+participant API
+
+User -> FileExplorer : Navigate to File Explorer page
+FileExplorer -> FileExplorer : Display folder structure
+
+alt Folder selected
+    User -> FileExplorer : Select a folder
+    FileExplorer -> API : Fetch files for the selected folder
+    API --> FileExplorer : Return file data
+    FileExplorer -> FileExplorer : Display files in the right pane
+else (No folder selected)
+    FileExplorer -> FileExplorer : Display "No files available"
+end
+
+User -> FileExplorer : Select a file for upload
+FileExplorer -> FileExplorer : Display file type and folder selection
+
+alt Upload conditions met
+    User -> FileExplorer : Click "Upload"
+    FileExplorer -> API : Upload file to selected folder
+    API --> FileExplorer : Return upload success
+    FileExplorer -> FileExplorer : Refresh file list
+else (Upload conditions not met)
+    FileExplorer -> User : Display "Upload aborted"
+end
+
+User -> FileExplorer : Click "Download" or "Delete" on a file
+
+alt Download
+    FileExplorer -> API : Request file for download
+    API --> User : Provide download link
+else Delete
+    FileExplorer -> API : Request file deletion
+    API --> FileExplorer : Confirm deletion
+    FileExplorer -> FileExplorer : Refresh file list
+end
+
+@enduml

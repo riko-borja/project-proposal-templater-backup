@@ -1,0 +1,34 @@
+@startuml view-users-process-flow
+participant User
+participant ViewUsers
+participant API
+participant Snackbar
+
+User -> ViewUsers : View Registered Users table
+alt User clicks "Edit"
+    ViewUsers -> ViewUsers : Open Edit User modal
+    User -> ViewUsers : Update user details
+    User -> ViewUsers : Click "Save"
+    ViewUsers -> API : PUT /api/update-user/:id
+    alt Success response
+        API -> ViewUsers : Return success
+        ViewUsers -> Snackbar : Show "User updated successfully"
+        ViewUsers -> ViewUsers : Refresh user list
+    else Error response
+        API -> ViewUsers : Return error
+        ViewUsers -> Snackbar : Show error message
+    end
+end
+alt User clicks "Delete"
+    User -> ViewUsers : Confirm deletion
+    ViewUsers -> API : POST /api/delete with user ID
+    alt Success response
+        API -> ViewUsers : Return success
+        ViewUsers -> ViewUsers : Refresh user list
+        ViewUsers -> Snackbar : Show "User deleted successfully"
+    else Error response
+        API -> ViewUsers : Return error
+        ViewUsers -> Snackbar : Show error message
+    end
+end
+@enduml

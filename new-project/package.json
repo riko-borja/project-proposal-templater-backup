@@ -1,0 +1,94 @@
+{
+  "name": "new-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "start-backend": "node server.js",
+    "copy-dist": "node copy-dist.js",
+    "build-and-copy": "npm run build && npm run copy-dist",
+    "watch": "chokidar \"src/**/*\" -c \"npm run build-and-copy\" --verbose --polling",
+    "dev": "concurrently --kill-others-on-fail \"npm run watch\" \"echo Watching for changes...\""
+  },
+  "dependencies": {
+    "@imengyu/vue3-context-menu": "^1.4.3",
+    "@mdi/font": "5.9.55",
+    "@onlyoffice/document-editor-vue": "^1.4.0",
+    "apexcharts": "^3.54.1",
+    "axios": "^1.7.7",
+    "babel-loader": "^9.2.1",
+    "chart.js": "^4.4.4",
+    "chroma-js": "^3.1.2",
+    "core-js": "^3.8.3",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.2.0",
+    "docx": "^8.5.0",
+    "docxtemplater": "^3.50.0",
+    "fast-xml-parser": "^4.5.0",
+    "file-saver": "^2.0.5",
+    "handsontable": "^14.5.0",
+    "lodash": "^4.17.21",
+    "pizzip": "^3.1.7",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.2.1",
+    "roboto-fontface": "*",
+    "thread-loader": "^4.0.4",
+    "vue": "^3.4.27",
+    "vue-chartjs": "^5.3.1",
+    "vue-router": "^4.0.3",
+    "vue3-apexcharts": "^1.6.0",
+    "vuetify": "^3.7.0-beta.1",
+    "vuex": "^4.1.0",
+    "vuex-persistedstate": "^4.1.0",
+    "webfontloader": "^1.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-plugin-eslint": "^5.0.8",
+    "@vue/cli-plugin-router": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "@vue/compiler-sfc": "^3.5.12",
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^9.1.0",
+    "cpx": "^1.5.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^9.27.0",
+    "node-notifier": "^10.0.1",
+    "sass": "^1.79.4",
+    "sass-loader": "^16.0.2",
+    "vue-cli-plugin-vuetify": "~2.5.8",
+    "vue-loader": "^17.0.1",
+    "webpack-plugin-vuetify": "^2.0.0-alpha.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {
+      "vue/valid-v-slot": [
+        "error",
+        {
+          "allowModifiers": true
+        }
+      ]
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}

@@ -1,0 +1,26 @@
+@startuml admin-dashboard-structure
+start
+:User logs in as Admin;
+:Admin sees the Admin Dashboard;
+
+fork
+  :Admin can choose to:
+  - Upload Standard Documents;
+  - View Users;
+  - Create User;
+  - Navigate to the File Explorer;
+endfork
+
+fork
+  :Admin can also view:
+  - Document Trend Chart;
+  - High-Level Metric Cards;
+  - Login Trends;
+  - Document Types;
+  - Top Users;
+  - User Statistics Panel;
+  - User Activity Table;
+endfork
+
+stop
+@enduml

@@ -1,0 +1,28 @@
+@startuml dynamic-table-process-flow
+participant "User" as User
+participant "Dynamic Table Page" as DynamicPage
+participant "Vuex Store" as Vuex
+participant "Router" as Router
+participant "API Server" as Server
+
+User -> DynamicPage : Opens Dynamic Table Page
+DynamicPage -> Vuex : Checks selected template in store
+
+alt Template exists in Vuex
+    DynamicPage -> Vuex : Load persisted table data
+else Template doesn't exist
+    DynamicPage -> Server : Fetch table data from template
+    Server --> DynamicPage : Receive parsed table data
+    DynamicPage -> Vuex : Store structured table data
+end
+
+User -> DynamicPage : Edits input fields in tables
+
+alt All required fields filled
+    User -> DynamicPage : Clicks "Next"
+    DynamicPage -> Vuex : Save table data
+    DynamicPage -> Router : Redirects to Checkbox Page
+else Missing required fields
+    DynamicPage -> User : Shows error message
+end
+@enduml

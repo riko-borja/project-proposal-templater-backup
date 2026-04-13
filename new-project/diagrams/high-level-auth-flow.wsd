@@ -1,0 +1,12 @@
+@startuml high-level-auth-flow
+start
+:User requests login;
+:Server verifies credentials with Database;
+if (Credentials Valid?) then (Yes)
+    :Generate JWT Token;
+    :Send token and success message to User;
+else (No)
+    :Send error message to User;
+endif
+stop
+@enduml

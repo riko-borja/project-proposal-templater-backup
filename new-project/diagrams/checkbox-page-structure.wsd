@@ -1,0 +1,31 @@
+@startuml checkbox-page-structure
+start
+:Display "Checkbox Page";
+:Show app bar with title;
+:Show subheader with instructions;
+note right
+  Instructions guide the user to
+  select relevant checkboxes.
+end note
+
+:Display "Collapse/Expand All" button;
+:Render checkbox sections dynamically;
+note right
+  Checkboxes are rendered based on
+  available data or configuration.
+end note
+
+:Show "Start Processing" button;
+
+if (Are checkboxes selected?) then (yes)
+  :Enable "Start Processing" button;
+  stop
+else (no)
+  note right
+    "Start Processing" button remains disabled
+    until at least one checkbox is selected.
+  end note
+endif
+
+stop
+@enduml

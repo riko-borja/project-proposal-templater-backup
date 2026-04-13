@@ -1,0 +1,22 @@
+@startuml login-structure-basic
+start
+:User enters username and password;
+:System checks the credentials;
+
+if (Are the credentials valid?) then (yes)
+  :Display "Login successful";
+  if (Is the user an admin?) then (yes)
+    :Navigate to Admin Dashboard;
+    stop
+  else (no)
+    :Navigate to Template Selection Page;
+    stop
+  endif
+else (no)
+  :Display error message "Invalid username or password";
+  stop
+endif
+
+@enduml
+
+

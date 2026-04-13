@@ -1,0 +1,28 @@
+@startuml authentication-process
+skinparam participant {
+    BackgroundColor #F0F8FF
+    BorderColor Black
+    FontName Arial
+    FontSize 12
+}
+
+actor Client
+participant "Node.js Server" as Server
+participant "MongoDB" as DB
+participant "JWT Auth" as JWT
+
+Client -> Server : Request Login
+Server -> DB : Verify Credentials
+alt Valid Credentials
+    Server -> JWT : Generate Token
+    JWT --> Server : Return Token
+    Server --> Client : Login Successful
+else Invalid Credentials
+    Server --> Client : Login Failed
+end
+
+note right of JWT
+  JWT (JSON Web Token) is used for secure
+  authentication and authorization.
+end note
+@enduml

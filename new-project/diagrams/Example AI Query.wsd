@@ -1,0 +1,84 @@
+@startuml Query
+title User Query
+
+!define RECTANGLE class
+!define AGENT node
+
+RECTANGLE "User Query and Input" as UQI {
+    :User submits query through the interface;
+    :AI agent receives and begins processing;
+    note
+        Sample Query:
+        "Can you provide a comparative analysis of the success rates and resource allocations
+        for all project proposals involving renewable energy clients over the past three years?"
+    end note
+}
+
+RECTANGLE "Predefined Prompts" as PP {
+    :Agent identifies required prompts;
+    note right
+        Success Rate Comparison Prompt
+        Resource Allocation Prompt
+        Client Info Extraction Prompt
+    end note
+}
+
+RECTANGLE "Data Collection and Ingestion" as DCI {
+    :System checks for relevant data on renewable energy projects;
+    :Ingests additional documents if necessary;
+}
+
+RECTANGLE "Data Preprocessing" as DP {
+    :Filters data for the last three years;
+    :Standardizes client names;
+    :Tokenizes and normalizes text;
+}
+
+RECTANGLE "Data Transformation" as DT {
+    :Vectorizes text with TF-IDF;
+    :Scales and normalizes numerical data;
+}
+
+RECTANGLE "Model Training / Utilization" as MTU {
+    :Uses existing model for project data analytics;
+    :Performs incremental training if needed;
+}
+
+RECTANGLE "Document Processing for Query Answering" as DPQA {
+    :Agent extracts key data using Haystack;
+    :Performs cross-document analysis;
+}
+
+RECTANGLE "Persistent Learning and KB Updates" as PLKBU {
+    :Indexes new insights in Elasticsearch;
+    :Updates Neo4j with project-client relationships;
+}
+
+RECTANGLE "Query Processing and Prompt Execution" as QPPE {
+    :Agent executes chained prompts;
+    note right
+        Extracts success rates
+        Retrieves resource allocations
+        Compares and analyzes data
+    end note
+}
+
+RECTANGLE "Output Generation" as OG {
+    :Generates report with comparisons and insights;
+    :Includes tables and visual graphs;
+    :Presents the output via user interface;
+}
+
+AGENT "AI Workflow" {
+    UQI --> PP
+    PP --> DCI
+    DCI --> DP
+    DP --> DT
+    DT --> MTU
+    MTU --> DPQA
+    DPQA --> PLKBU
+    PLKBU --> QPPE
+    QPPE --> OG
+}
+
+@enduml

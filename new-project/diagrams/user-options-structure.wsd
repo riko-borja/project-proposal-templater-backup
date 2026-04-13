@@ -1,0 +1,23 @@
+@startuml template-selection-structure
+start
+:User views the list of templates;
+:User selects a template;
+:System confirms template selection;
+
+if (Is a template selected?) then (yes)
+  :Display "Template selected";
+  :Navigate to Input Fields Page;
+  note right
+    User is redirected to the next step
+    to start filling input fields.
+  end note
+else (no)
+  note right
+    The "Next" button is disabled until
+    a template is selected.
+  end note
+  stop
+endif
+
+stop
+@enduml

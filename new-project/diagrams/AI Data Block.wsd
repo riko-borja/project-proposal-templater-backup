@@ -1,0 +1,64 @@
+@startuml AI Data Block
+!define RECTANGLE class
+!define AGENT node
+
+RECTANGLE "User" as User {
+    :Submit query;
+}
+
+RECTANGLE "User Query" as Q
+RECTANGLE "Predefined Prompt (Specific or Complex)" as P
+RECTANGLE "Data Collection and Ingestion" as A
+RECTANGLE "Data Preprocessing" as B
+RECTANGLE "Data Transformation" as C
+RECTANGLE "Model Training / Existing Model Use" as D
+RECTANGLE "Model Evaluation" as E
+RECTANGLE "Deployment for Real-Time Interaction" as F
+RECTANGLE "Continuous Learning and Feedback" as G
+RECTANGLE "Upload and Process Documents" as H
+RECTANGLE "Temporary Processing and Query Answering" as I
+RECTANGLE "Persistent Learning Path" as J
+RECTANGLE "Update Knowledge Base / Index" as K
+RECTANGLE "Output: Answers / Recommendations / Comparisons" as O
+
+AGENT "AI Agents" {
+    User --> Q
+    Q --> P
+    P --> A
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    F --> H
+    H --> I
+    H --> J
+    J --> K
+    K --> G
+    I --> O
+}
+
+note right of "AI Agents"
+    AI Agents manage and coordinate the entire workflow,
+    overseeing each step in the process to ensure smooth
+    operation and response generation.
+end note
+
+note left of Q : User submits query
+note right of P : Prompts guide AI processing
+note right of A : Tools: Apache Kafka, Logstash
+note right of B : Tools: Pandas, NLTK, OpenRefine
+note right of C : Tools: Scikit-learn, Gensim, FastText
+note right of D : Tools: TensorFlow, PyTorch, RAG
+note right of E : Evaluation: TensorBoard, Metrics
+note right of F : Deployment: Flask, Docker
+note right of H : Tools: Haystack, LangChain
+note right of J : Indexing: Elasticsearch, FAISS
+note right of K : Storage: Neo4j, Redis
+
+note top of G : Updates models and retrains with feedback
+note top of I : Executes prompt-based responses
+note top of O : Presents summarized results
+
+@enduml

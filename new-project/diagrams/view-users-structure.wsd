@@ -1,0 +1,32 @@
+@startuml view-users-structure
+start
+:User views the Registered Users table;
+:User clicks "Edit" to update a user;
+
+if (Is "Edit User" confirmed?) then (yes)
+  :User clicks "Save" in the Edit User modal;
+  :Snackbar displays "User updated successfully";
+  stop
+else (no)
+  :User clicks "Cancel" in the Edit User modal;
+  :Return to Registered Users table;
+endif
+
+:User clicks "Delete" to remove a user;
+if (Is deletion confirmed?) then (yes)
+  :Delete the user;
+  :Snackbar displays "User deleted successfully";
+else (no)
+  :Display "Deletion canceled" message;
+endif
+
+:User views the pagination to navigate through pages;
+:Snackbar displays status updates;
+note right
+  Status updates include messages like:
+  - "User updated successfully"
+  - "User deletion failed"
+end note
+
+stop
+@enduml

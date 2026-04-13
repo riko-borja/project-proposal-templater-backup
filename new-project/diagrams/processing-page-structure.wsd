@@ -1,0 +1,24 @@
+@startuml processing-page-structure
+start
+:Display "Processing Page";
+:Show circular progress indicator;
+:Display message "Processing your document, please wait...";
+note right
+  The circular progress indicator and
+  message inform the user that the system
+  is processing the document.
+end note
+
+if (Processing complete?) then (yes)
+  :Navigate to success page or display success message;
+  stop
+else (no)
+  :Handle processing error or timeout;
+  note right
+    If an error occurs, display an appropriate
+    message or provide an option to retry.
+  end note
+  stop
+endif
+
+@enduml

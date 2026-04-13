@@ -1,0 +1,23 @@
+@startuml editor-page-structure
+start
+:Display Editor Page;
+:Load DocumentEditor component;
+
+if (Is document URL available?) then (yes)
+  :Render DocumentEditor;
+else (no)
+  :Display "Loading document...";
+  note right
+    If the document URL is not available,
+    display a loading message until it loads
+    or show an error if it fails.
+  end note
+  if (Does loading fail?) then (yes)
+    :Display error message "Failed to load document";
+    :Offer retry option or go back to template selection;
+  endif
+endif
+
+:Display "Go Back to Selecting Template" button;
+stop
+@enduml
