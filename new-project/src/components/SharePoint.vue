@@ -76,6 +76,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from "axios";
 
 export default {
@@ -99,7 +100,7 @@ export default {
         const { clientId, tenantId, clientSecret, siteUrl, siteId, driveId } =
           this.config;
 
-        const response = await axios.post("/api/sharepoint/test-connection", {
+        const response = await axios.post(backendUrl("/api/sharepoint/test-connection"), {
           clientId,
           tenantId,
           clientSecret,
@@ -125,7 +126,7 @@ export default {
     },
     async saveConfiguration() {
       try {
-        const response = await axios.post("/api/sharepoint/save-config", {
+        const response = await axios.post(backendUrl("/api/sharepoint/save-config"), {
           config: this.config,
         });
 

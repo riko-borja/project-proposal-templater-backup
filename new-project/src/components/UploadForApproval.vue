@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 export default {
   data() {
     return {
@@ -36,7 +37,7 @@ export default {
       formData.append('file', this.file);
 
       try {
-        const response = await fetch('/api/upload-modified-document', {
+        const response = await fetch(backendUrl('/api/upload-modified-document'), {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,

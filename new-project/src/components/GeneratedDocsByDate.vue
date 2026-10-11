@@ -22,6 +22,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import { format } from 'date-fns-tz';
 
@@ -43,7 +44,7 @@ export default {
   methods: {
     async fetchDocuments() {
       try {
-        const response = await axios.get('/api/documents');
+        const response = await axios.get(backendUrl('/api/documents'));
         this.documents = response.data;
         this.calculateMonthlySummary();
       } catch (error) {

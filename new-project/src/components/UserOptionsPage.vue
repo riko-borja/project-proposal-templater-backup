@@ -52,6 +52,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import { ref, onMounted, defineComponent, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
@@ -79,7 +80,7 @@ export default defineComponent({
       errorMessage.value = '';
 
       try {
-        const response = await axios.get('/api/files/fetch-template-files', {
+        const response = await axios.get(backendUrl('/api/files/fetch-template-files'), {
           params: { hierarchy: hierarchyString },
         });
 

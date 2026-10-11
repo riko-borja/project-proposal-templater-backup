@@ -40,6 +40,7 @@
   </template>
   
   <script>
+import { backendUrl } from '@/apiUrl';
   import { mapState } from 'vuex';
   import VueApexCharts from 'vue3-apexcharts';
   
@@ -104,7 +105,7 @@
     },
     async created() {
   try {
-    const apiUrl = process.env.VUE_APP_API_URL || '/api';
+    const apiUrl = backendUrl('/api');
     const response = await fetch(`${apiUrl}/button-click-logs`);
 
     // Check if the response is okay

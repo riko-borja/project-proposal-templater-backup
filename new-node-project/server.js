@@ -8,7 +8,14 @@ const expressListEndpoints = require('express-list-endpoints');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5001',
+  'http://127.0.0.1:5001',
+  'http://localhost:8082',
+  'http://127.0.0.1:8082',
+  process.env.FRONTEND_URL,
+].filter(Boolean).map(origin => origin.trim().replace(/\/$/, ''));
+app.use(cors({ origin: allowedOrigins }));
 
 // Import Folder model for initializing mirrored root
 const { Folder } = require('./models/newConnection');

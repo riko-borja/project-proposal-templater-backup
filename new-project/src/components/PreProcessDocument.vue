@@ -4,6 +4,7 @@
 </template>
   
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import Docxtemplater from 'docxtemplater';
 import PizZip from 'pizzip';
@@ -15,7 +16,7 @@ export default {
     async preprocessAndSendToServer(templateFile) {
       try {
         // Load the template from the server
-        const response = await axios.get(`/api/sow-template?filename=${encodeURIComponent(templateFile)}`, {
+        const response = await axios.get(backendUrl(`/api/sow-template?filename=${encodeURIComponent(templateFile)}`), {
           responseType: 'arraybuffer',
         });
 
@@ -53,7 +54,7 @@ export default {
         console.log('JWT token:', token); // Log token for debugging purposes
 
         // Send the processed document to the Node.js server for storage
-        await axios.post('/api/upload-processed-template', formData, {
+        await axios.post(backendUrl('/api/upload-processed-template'), formData, {
           headers: {
             'Authorization': `Bearer ${token}`, // Include JWT token
             'Content-Type': 'multipart/form-data',

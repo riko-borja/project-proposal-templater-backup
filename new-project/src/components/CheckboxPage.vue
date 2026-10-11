@@ -95,6 +95,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import { ref, onMounted, computed, onUpdated, toRaw } from 'vue';
 import axios from 'axios';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
@@ -203,7 +204,7 @@ const collapseChildren = (children, collapsed) => {
     }
 
     // Fetch the original template data using the original endpoint
-    const response = await axios.get('/api/files/fetch-template-content', {
+    const response = await axios.get(backendUrl('/api/files/fetch-template-content'), {
       params: {
         fileId,
         bucketName,
@@ -796,7 +797,7 @@ const prepareFinalOutput = () => {
 
       console.log('Uploading the processed document to the server.');
 
-      const uploadResponse = await axios.post('/api/files/upload-generated-document', uploadFormData, {
+      const uploadResponse = await axios.post(backendUrl('/api/files/upload-generated-document'), uploadFormData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

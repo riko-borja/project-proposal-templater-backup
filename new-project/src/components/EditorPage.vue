@@ -22,6 +22,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import { defineComponent } from 'vue';
 import { DocumentEditor } from '@onlyoffice/document-editor-vue';
@@ -89,7 +90,7 @@ export default defineComponent({
     async loadDocument(fileId) { 
       try {
         console.log('Attempting to load document with fileId:', fileId); // Log fileId for visibility
-        const apiUrl = process.env.VUE_APP_API_URL || '/api';
+        const apiUrl = backendUrl('/api');
         const response = await axios.post(`${apiUrl}/generate-editor-url`, { fileId });
 
         if (response.data) {

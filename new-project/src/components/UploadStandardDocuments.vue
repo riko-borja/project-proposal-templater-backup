@@ -51,6 +51,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 
 export default {
@@ -71,7 +72,7 @@ export default {
   async mounted() {
   try {
     // Fetch folders with storageType: 'Document'
-    const response = await axios.get('/api/document-storage-folders');
+    const response = await axios.get(backendUrl('/api/document-storage-folders'));
 
     console.log('API response:', response.data); // Check what the API is returning
 
@@ -99,7 +100,7 @@ export default {
       formData.append('collectionName', this.selectedCollection);
 
       try {
-        const response = await axios.post('/api/upload-template', formData, {
+        const response = await axios.post(backendUrl('/api/upload-template'), formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

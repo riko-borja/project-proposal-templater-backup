@@ -161,6 +161,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import { ref, watch } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -228,7 +229,7 @@ export default {
         console.log('Starting to save data...');
 
         // Use relative URL for the backend API
-        const saveResponse = await axios.post('/api/data', {
+        const saveResponse = await axios.post(backendUrl('/api/data'), {
           clientName: clientName.value,
           dataflowEndpoint: dataflowEndpoint.value,
           customerApplicationName: customerApplicationName.value,
@@ -252,7 +253,7 @@ export default {
         console.log('Data saved successfully:', saveResponse.data);
 
         // Fetch the Word template from the backend using relative URL
-        const templateResponse = await axios.get('/api/template', {
+        const templateResponse = await axios.get(backendUrl('/api/template'), {
           responseType: 'arraybuffer', // Important for binary data
         });
 
@@ -333,7 +334,7 @@ export default {
 
         // Use relative URL for uploading the document
         const uploadResponse = await axios.post(
-          '/api/upload-generated-document',
+          backendUrl('/api/upload-generated-document'),
           formData,
           {
             headers: {

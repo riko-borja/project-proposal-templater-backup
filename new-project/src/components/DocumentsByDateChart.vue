@@ -15,6 +15,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import VueApexCharts from 'vue3-apexcharts';
 import axios from 'axios';
 
@@ -31,7 +32,7 @@ export default {
   methods: {
     async fetchDocumentTrends() {
       try {
-        const response = await axios.get('/api/documents');
+        const response = await axios.get(backendUrl('/api/documents'));
         const documents = response.data;
 
         const weekCounts = {};

@@ -50,6 +50,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -68,7 +69,7 @@ export default {
       isLoading.value = true;
       errorMessage.value = '';
       try {
-        const response = await axios.get('/api/folders/query-folders', {
+        const response = await axios.get(backendUrl('/api/folders/query-folders'), {
           params: {
             type: 'category',
             parent: null,
@@ -97,7 +98,7 @@ export default {
       isLoading.value = true;
       errorMessage.value = '';
       try {
-        const response = await axios.get('/api/folders/query-folders', {
+        const response = await axios.get(backendUrl('/api/folders/query-folders'), {
           params: {
             parent: parentId,
             excludeType: 'storage',

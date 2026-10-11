@@ -34,6 +34,7 @@
   </template>
   
   <script>
+import { backendUrl } from '@/apiUrl';
   import axios from 'axios';
   import LoginsPerDay from './LoginsPerDay.vue';
   import LoginsPerWeek from './LoginsPerWeek.vue';
@@ -54,7 +55,7 @@
     methods: {
       async fetchLogs() {
         try {
-          const response = await axios.get('/api/logs');
+          const response = await axios.get(backendUrl('/api/logs'));
           const logsData = response.data;
   
           this.processLoginsPerDay(logsData);

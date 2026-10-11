@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 
 export default {
@@ -41,7 +42,7 @@ export default {
   async createCategory() {
     try {
       // Send the formatted category name to the backend
-      const response = await axios.post('/api/create-category', {
+      const response = await axios.post(backendUrl('/api/create-category'), {
         categoryName: this.formattedCategoryName,
       });
       

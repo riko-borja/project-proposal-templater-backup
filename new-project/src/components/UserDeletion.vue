@@ -45,6 +45,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 export default {
   data() {
     return {
@@ -63,7 +64,7 @@ export default {
   methods: {
     async fetchUsers() {
       try {
-        const apiUrl = process.env.VUE_APP_API_URL || '/api';
+        const apiUrl = backendUrl('/api');
         const response = await fetch(`${apiUrl}/users`);
         const data = await response.json();
         this.users = data;
@@ -82,7 +83,7 @@ export default {
       const selectedUserIds = this.selectedUsers;
 
       try {
-        const apiUrl = process.env.VUE_APP_API_URL || '/api';
+        const apiUrl = backendUrl('/api');
         const response = await fetch(`${apiUrl}/delete`, {
           method: 'POST',
           headers: {

@@ -439,6 +439,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import AppBarLayout from '@/components/AppBarLayout.vue';
 import WordViewer from '@/components/WordViewer.vue';
@@ -869,7 +870,7 @@ export default {
 
       this.isReplacingAllCheckedOccurrences = true;
       try {
-        const response = await axios.post('/api/tag-authoring/replace-selected', {
+        const response = await axios.post(backendUrl('/api/tag-authoring/replace-selected'), {
           fileId,
           bucketName,
           sourceText,
@@ -931,7 +932,7 @@ export default {
 
       this.isPreviewHighlightingOccurrences = true;
       try {
-        const response = await axios.post('/api/tag-authoring/preview-highlight-checked', {
+        const response = await axios.post(backendUrl('/api/tag-authoring/preview-highlight-checked'), {
           fileId,
           bucketName,
           sourceText,
@@ -1078,7 +1079,7 @@ export default {
       this.resetPreviewState();
 
       try {
-        const response = await axios.get('/api/folders/query-folders', {
+        const response = await axios.get(backendUrl('/api/folders/query-folders'), {
           params: {
             type: 'category',
             parent: null,
@@ -1105,7 +1106,7 @@ export default {
       this.selectionError = '';
 
       try {
-        const response = await axios.get('/api/folders/query-folders', {
+        const response = await axios.get(backendUrl('/api/folders/query-folders'), {
           params: {
             parent: parentId,
             excludeType: 'storage',
@@ -1170,7 +1171,7 @@ export default {
       this.resetPreviewState();
 
       try {
-        const response = await axios.get('/api/files/fetch-template-files', {
+        const response = await axios.get(backendUrl('/api/files/fetch-template-files'), {
           params: { hierarchy: JSON.stringify(hierarchy) },
         });
 
@@ -1297,7 +1298,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('/api/tag-authoring/analyze-template', {
+        const response = await axios.post(backendUrl('/api/tag-authoring/analyze-template'), {
           fileId: String(fileId).trim(),
           bucketName: String(bucketName).trim(),
         });

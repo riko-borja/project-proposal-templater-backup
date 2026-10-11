@@ -351,6 +351,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import { ref, onMounted, onBeforeUnmount, computed, watch, defineComponent } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useStore } from 'vuex';
@@ -781,7 +782,7 @@ const loadTemplateInputs = async () => {
 
   try {
     console.log('Fetching template content...');
-    const response = await axios.get('/api/files/fetch-template-content', {
+    const response = await axios.get(backendUrl('/api/files/fetch-template-content'), {
       params: { fileId, bucketName, userId },
       responseType: 'arraybuffer',
     });
@@ -1103,7 +1104,7 @@ const loadTemplateInputs = async () => {
     // Send dataModel to backend for processing
     console.log('Sending dataModel to backend...');
     const token = localStorage.getItem('jwtToken');
-    const response = await axios.post('/api/files/process-dropdown-logic', {
+    const response = await axios.post(backendUrl('/api/files/process-dropdown-logic'), {
       dataModel, 
       fileId,
       bucketName,

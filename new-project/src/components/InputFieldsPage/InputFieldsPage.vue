@@ -59,6 +59,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
@@ -169,7 +170,7 @@ export default {
       }
 
       try {
-        const response = await axios.get('/api/files/fetch-template-content', {
+        const response = await axios.get(backendUrl('/api/files/fetch-template-content'), {
           params: { fileId, bucketName },
           responseType: 'arraybuffer',
         });

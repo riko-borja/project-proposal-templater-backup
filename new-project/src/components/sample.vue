@@ -175,6 +175,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import SimpleNode from './SimpleNode.vue';
 import { ContextMenu, ContextMenuItem } from '@imengyu/vue3-context-menu';
@@ -283,7 +284,7 @@ export default {
       console.log('Fetching files for path:', folderPath); // Log folderPath
       this.isLoadingFiles = true;
       try {
-        const response = await axios.get('/api/files/get-files', {
+        const response = await axios.get(backendUrl('/api/files/get-files'), {
           params: { path: folderPath },
         });
         console.log('Response from backend:', response.data); // Log backend response
@@ -336,7 +337,7 @@ export default {
       }
       
       try {
-        const response = await axios.delete('/api/files/delete-file', {
+        const response = await axios.delete(backendUrl('/api/files/delete-file'), {
           data: {
             path: this.currentFolderPath,
             fileId: file._id,
@@ -448,7 +449,7 @@ export default {
       // Implement download logic
       console.log('Downloading file:', file);
       // Example:
-      // window.open(`/api/files/download?fileId=${file._id}`, '_blank');
+      // window.open(backendUrl(`/api/files/download?fileId=${file._id}`), '_blank');
     },
     renameFile(file) {
       // Implement rename logic
@@ -479,7 +480,7 @@ export default {
       }
       console.log('Creating folder:', this.newFolderName, 'Type:', this.selectedFolderType);
       try {
-        const response = await axios.post('/api/files/create-folder', {
+        const response = await axios.post(backendUrl('/api/files/create-folder'), {
           path: this.currentFolderPath,
           name: this.newFolderName,
           type: this.selectedFolderType,
@@ -521,7 +522,7 @@ export default {
     // Additional methods can be added here
     async fetchFolderStructure() {
       try {
-        const response = await axios.get('/api/files/get-folder-structure', {
+        const response = await axios.get(backendUrl('/api/files/get-folder-structure'), {
           params: { path: this.currentFolderPath },
         });
         this.folderStructure = response.data;

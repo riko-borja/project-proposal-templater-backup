@@ -16,6 +16,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import { defineComponent } from 'vue';
 import { DocumentEditor } from '@onlyoffice/document-editor-vue';
@@ -269,7 +270,7 @@ export default defineComponent({
       this.$emit('loading');
 
       try {
-        const response = await axios.post('/api/files/generate-editor-url', {
+        const response = await axios.post(backendUrl('/api/files/generate-editor-url'), {
           fileId: normalizedFileId,
           bucketName: normalizedBucketName,
         });

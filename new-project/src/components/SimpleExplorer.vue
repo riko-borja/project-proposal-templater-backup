@@ -161,6 +161,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import SimpleNode from './SimpleNode.vue';
 import { ContextMenu, ContextMenuItem } from '@imengyu/vue3-context-menu';
@@ -299,7 +300,7 @@ export default {
      async fetchFiles(folderPath = '') {
       this.isLoadingFiles = true;
       try {
-        const response = await axios.get('/api/files/get-files', {
+        const response = await axios.get(backendUrl('/api/files/get-files'), {
           params: { path: folderPath, timestamp: Date.now() }, // Add timestamp to prevent caching
         });
         this.files = response.data;
@@ -318,7 +319,7 @@ export default {
      */
     async fetchFolderStructure() {
       try {
-        const response = await axios.get('/api/folders/folder-structure');
+        const response = await axios.get(backendUrl('/api/folders/folder-structure'));
         this.folderStructure = this.addIsExpanded(response.data);
       } catch (error) {
         console.error('Error fetching folder structure:', error);
@@ -457,7 +458,7 @@ export default {
       }
 
       try {
-        await axios.delete('/api/files/delete-file', {
+        await axios.delete(backendUrl('/api/files/delete-file'), {
           params: {
             path: this.currentFolderPath,
             fileId: file._id,
@@ -505,7 +506,7 @@ export default {
       const newName = prompt('Enter the new name for the file:', file.filename);
       if (newName && newName.trim() !== '') {
         try {
-          await axios.put('/api/files/rename-file', {
+          await axios.put(backendUrl('/api/files/rename-file'), {
             fileId: file._id,
             newName: newName.trim(),
             folderPath: this.currentFolderPath, // Pass folderPath only
@@ -545,7 +546,7 @@ export default {
           this.isLoadingFiles = true;
 
           try {
-            await axios.post('/api/files/upload-file', formData, {
+            await axios.post(backendUrl('/api/files/upload-file'), formData, {
               headers: {
                 'Content-Type': 'multipart/form-data',
               },
@@ -584,7 +585,7 @@ export default {
 
       const isCategoryType = this.selectedFolderType === 'category' || this.selectedFolderType === 'subcategory';
       const isStorageType = this.selectedFolderType === 'storage';
-      const endpoint = isCategoryType ? '/api/folders/create-category-folder' : '/api/folders/create-folder';
+      const endpoint = isCategoryType ? backendUrl('/api/folders/create-category-folder') : backendUrl('/api/folders/create-folder');
 
       // Find the current folder object to get its _id and type
       const parentFolder = this.findFolderByPath(this.folderStructure, this.currentFolderPath);
@@ -669,7 +670,7 @@ export default {
     async deleteFolderAPI(path) {
       try {
         // Make an initial API call to check the folder state
-        const validationResponse = await axios.post('/api/folders/check-folder', { path });
+        const validationResponse = await axios.post(backendUrl('/api/folders/check-folder'), { path });
         const folderInfo = validationResponse.data;
 
         // Handle case where the folder contains files
@@ -707,12 +708,12 @@ export default {
         const mirroredPath = this.mirrorPath(path); // Use your existing mirrorPath logic
         if (mirroredPath) {
           try {
-            const mirrorValidationResponse = await axios.post('/api/folders/check-folder', { path: mirroredPath });
+            const mirrorValidationResponse = await axios.post(backendUrl('/api/folders/check-folder'), { path: mirroredPath });
             const mirrorInfo = mirrorValidationResponse.data;
 
             // If the mirrored folder has files or subfolders, delete it
             if (mirrorInfo.containsFiles || mirrorInfo.hasSubfolders) {
-              await axios.delete('/api/folders/delete-folder', { data: { path: mirroredPath } });
+              await axios.delete(backendUrl('/api/folders/delete-folder'), { data: { path: mirroredPath } });
             }
           } catch (mirrorError) {
             console.error('Error during mirrored folder deletion:', mirrorError);
@@ -720,7 +721,7 @@ export default {
         }
 
         // Proceed with deletion of the primary folder
-        const deleteResponse = await axios.delete('/api/folders/delete-folder', { data: { path } });
+        const deleteResponse = await axios.delete(backendUrl('/api/folders/delete-folder'), { data: { path } });
         alert(deleteResponse.data.message); // Show success message
         this.fetchFolderStructure(); // Refresh the folder structure
 
@@ -761,7 +762,7 @@ export default {
       }
 
       try {
-        await axios.put('/api/folders/rename-folder', { oldPath, newName: newName.trim() });
+        await axios.put(backendUrl('/api/folders/rename-folder'), { oldPath, newName: newName.trim() });
 
         // Refresh the folder structure
         await this.fetchFolderStructure();
@@ -816,7 +817,7 @@ export default {
       if (!file) return; // Add this check
       // Implement file download logic
       // Example:
-      window.open(`/api/files/download?fileId=${file._id}`, '_blank');
+      window.open(backendUrl(`/api/files/download?fileId=${file._id}`), '_blank');
     },
 
     /**

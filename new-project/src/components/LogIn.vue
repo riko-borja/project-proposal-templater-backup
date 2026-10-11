@@ -48,6 +48,7 @@
 
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ref } from 'vue';
@@ -74,7 +75,7 @@ export default {
 
       isSubmitting.value = true;
       try {
-        const apiUrl = process.env.VUE_APP_API_URL || '/api';
+        const apiUrl = backendUrl('/api');
         const response = await fetch(`${apiUrl}/users/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

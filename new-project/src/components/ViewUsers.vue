@@ -94,6 +94,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 export default {
   data() {
     return {
@@ -128,7 +129,7 @@ export default {
   methods: {
     async fetchUsers() {
       try {
-        const response = await fetch('/api/users');
+        const response = await fetch(backendUrl('/api/users'));
         const data = await response.json();
         this.users = data;
       } catch (error) {
@@ -142,7 +143,7 @@ export default {
     async saveUser() {
       try {
         const { _id, username, role, emailId } = this.selectedUser;
-        const response = await fetch(`/api/users/update-user/${_id}`, {
+        const response = await fetch(backendUrl(`/api/users/update-user/${_id}`), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, role, emailId }),
@@ -164,7 +165,7 @@ export default {
       const confirmed = confirm(`Are you sure you want to delete user ${user.username}?`);
       if (confirmed) {
         try {
-          const response = await fetch('/api/users/delete', {
+          const response = await fetch(backendUrl('/api/users/delete'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userIds: [user._id] }),

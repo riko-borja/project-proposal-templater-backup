@@ -267,6 +267,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 
 import axios from 'axios';
 import LoginTrendsChart from '@/components/LoginTrendsChart.vue';
@@ -484,7 +485,7 @@ selectedUsername() {
     async fetchTotalUsers() {
       try {
         // Fetch all users from the existing endpoint
-        const response = await axios.get('http://127.0.0.1:5001/api/users'); // Update the URL if needed
+        const response = await axios.get(backendUrl('/api/users')); // Update the URL if needed
 
         // Calculate the total number of users
         const totalUsers = Array.isArray(response.data) ? response.data.length : 0;
@@ -499,9 +500,9 @@ selectedUsername() {
       try {
         // Fetch data concurrently
         const [loginResponse, documentResponse, usersResponse] = await Promise.all([
-          axios.get('http://127.0.0.1:5001/api/logs'),
-          axios.get('http://127.0.0.1:5001/api/files/documents'),
-          axios.get('http://127.0.0.1:5001/api/users'),
+          axios.get(backendUrl('/api/logs')),
+          axios.get(backendUrl('/api/files/documents')),
+          axios.get(backendUrl('/api/users')),
         ]);
 
         // Validate and initialize data
@@ -535,7 +536,7 @@ selectedUsername() {
     async fetchDocumentTrendData() {
       try {
         // Fetch documents from the endpoint
-        const documentResponse = await axios.get('http://127.0.0.1:5001/api/files/documents');
+        const documentResponse = await axios.get(backendUrl('/api/files/documents'));
         const documents = Array.isArray(documentResponse.data) ? documentResponse.data : [];
 
         // Structure document data for the chart
@@ -578,7 +579,7 @@ selectedUsername() {
     async fetchLoginsToday() {
       try {
         // Fetch all login logs from the endpoint
-        const response = await axios.get('http://127.0.0.1:5001/api/logs');
+        const response = await axios.get(backendUrl('/api/logs'));
         const logs = Array.isArray(response.data) ? response.data : [];
 
         // Calculate logins that occurred today
@@ -597,7 +598,7 @@ selectedUsername() {
 
     async fetchDocumentsToday() {
       try {
-        const response = await axios.get('http://127.0.0.1:5001/api/files/documents');
+        const response = await axios.get(backendUrl('/api/files/documents'));
         const documents = Array.isArray(response.data) ? response.data : [];
 
         // Calculate documents generated today
@@ -617,7 +618,7 @@ selectedUsername() {
     async fetchActiveUsersToday() {
       try {
         // Fetch user logs from the correct endpoint
-        const response = await axios.get('http://127.0.0.1:5001/api/logs/userlogs');
+        const response = await axios.get(backendUrl('/api/logs/userlogs'));
 
         // Validate if the response is an array
         const logs = Array.isArray(response.data) ? response.data : [];
@@ -661,7 +662,7 @@ selectedUsername() {
     },
     async fetchLogins() {
       try {
-        const response = await axios.get('http://127.0.0.1:5001/api/logs');
+        const response = await axios.get(backendUrl('/api/logs'));
         const logs = Array.isArray(response.data) ? response.data : [];
 
         // Format login data for the chart
@@ -684,7 +685,7 @@ selectedUsername() {
 
     async fetchDocumentTypes() {
       try {
-        const response = await axios.get('http://127.0.0.1:5001/api/files/documents');
+        const response = await axios.get(backendUrl('/api/files/documents'));
         const documents = Array.isArray(response.data) ? response.data : [];
 
         // Filter and format document types for the chart
@@ -720,7 +721,7 @@ selectedUsername() {
 
     async fetchUsers() {
       try {
-        const response = await axios.get('http://127.0.0.1:5001/api/users');
+        const response = await axios.get(backendUrl('/api/users'));
         this.users = Array.isArray(response.data) ? response.data : [];
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -730,7 +731,7 @@ selectedUsername() {
 
     async fetchLoginLogs() {
       try {
-        const response = await axios.get('http://127.0.0.1:5001/api/logs/userlogs');
+        const response = await axios.get(backendUrl('/api/logs/userlogs'));
         this.loginLogs = Array.isArray(response.data) ? response.data : [];
       } catch (error) {
         console.error('Error fetching login logs:', error);
@@ -740,7 +741,7 @@ selectedUsername() {
 
     async fetchDocuments() {
       try {
-        const response = await axios.get('http://127.0.0.1:5001/api/files/documents');
+        const response = await axios.get(backendUrl('/api/files/documents'));
         this.documents = Array.isArray(response.data) ? response.data : [];
       } catch (error) {
         console.error('Error fetching documents:', error);
@@ -752,11 +753,11 @@ selectedUsername() {
 async fetchTopUsers() {
   try {
     // Fetch documents from the backend
-    const response = await axios.get('http://127.0.0.1:5001/api/files/documents');
+    const response = await axios.get(backendUrl('/api/files/documents'));
     const documents = Array.isArray(response.data) ? response.data : [];
 
     // Fetch users to get usernames
-    const usersResponse = await axios.get('http://127.0.0.1:5001/api/users');
+    const usersResponse = await axios.get(backendUrl('/api/users'));
     const users = Array.isArray(usersResponse.data) ? usersResponse.data : [];
 
     // Map user IDs to usernames

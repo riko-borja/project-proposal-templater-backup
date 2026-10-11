@@ -13,6 +13,7 @@
   </template>
   
   <script>
+import { backendUrl } from '@/apiUrl';
   import axios from 'axios';
   import { defineComponent } from 'vue';
   import { DocumentEditor } from '@onlyoffice/document-editor-vue';
@@ -58,7 +59,7 @@
         async loadDocument() {
   try {
     
-    const apiUrl = process.env.VUE_APP_API_URL || '/api';
+    const apiUrl = backendUrl('/api');
         const response = await axios.post(`${apiUrl}/generate-excel-editor-url1`);
 
     if (response.data) {

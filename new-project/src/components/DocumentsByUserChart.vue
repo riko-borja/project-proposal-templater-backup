@@ -15,6 +15,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import VueApexCharts from 'vue3-apexcharts';
 import axios from 'axios';
 
@@ -35,7 +36,7 @@ export default {
       console.log('Starting fetchDocumentsByUser method...'); // Initial log
 
       // Step 1: Fetch documents from fs.files
-      const response = await axios.get('/api/documents');
+      const response = await axios.get(backendUrl('/api/documents'));
       const documents = response.data;
       console.log('Fetched documents:', documents); // Log fetched documents
 

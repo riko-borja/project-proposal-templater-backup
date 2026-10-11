@@ -16,6 +16,7 @@
   </template>
   
   <script>
+import { backendUrl } from '@/apiUrl';
   import VueApexCharts from 'vue3-apexcharts';
   import axios from 'axios';
   
@@ -34,7 +35,7 @@
     methods: {
       async fetchDocumentCountByUserPerDocument() {
         try {
-          const response = await axios.get('/api/documents');
+          const response = await axios.get(backendUrl('/api/documents'));
           const documents = response.data;
   
           const userIds = [...new Set(documents.map(doc => doc.metadata?.userId))];

@@ -38,6 +38,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 export default {
   data() {
     return {
@@ -71,7 +72,7 @@ export default {
       }
 
       try {
-        await fetch('/api/users/register', {
+        await fetch(backendUrl('/api/users/register'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

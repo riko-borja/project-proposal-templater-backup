@@ -26,6 +26,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -49,7 +50,7 @@ export default {
 
     const fetchTemplateAndParseSections = async () => {
       try {
-        const response = await axios.get('/api/sow-template', {
+        const response = await axios.get(backendUrl('/api/sow-template'), {
           responseType: 'arraybuffer',
         });
 
@@ -74,7 +75,7 @@ export default {
       }, {});
 
       try {
-        const saveResponse = await axios.post('/api/new-customer-data', {
+        const saveResponse = await axios.post(backendUrl('/api/new-customer-data'), {
           customerName: store.state.customerName,
           projectName: store.state.projectName,
           contractorName: store.state.contractorName,

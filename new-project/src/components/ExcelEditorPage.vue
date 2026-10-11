@@ -19,6 +19,7 @@
 </template>
 
 <script>
+import { backendUrl } from '@/apiUrl';
 import axios from 'axios';
 import { defineComponent } from 'vue';
 import { DocumentEditor } from '@onlyoffice/document-editor-vue';
@@ -85,7 +86,7 @@ export default defineComponent({
     async loadExcel() {
       try {
         const fileId = this.fileId;
-        const apiUrl = process.env.VUE_APP_API_URL || '/api';
+        const apiUrl = backendUrl('/api');
         const response = await axios.post(`${apiUrl}/generate-editor-url-excel`, { fileId });
 
         if (response.data) {
@@ -150,7 +151,7 @@ export default defineComponent({
 
     // 3. Save the updated Excel file to the backend with a new ID
     const newExcelFileId = `${this.fileId}_modified`;  // Example new file ID
-    await axios.post('/api/save-excel', {
+    await axios.post(backendUrl('/api/save-excel'), {
       fileId: newExcelFileId,
       fileData: fileContent,
     });
@@ -165,7 +166,7 @@ export default defineComponent({
       sourceRange: 'A1:B10',
     };
 
-    const apiUrl = process.env.VUE_APP_API_URL || '/api';
+    const apiUrl = backendUrl('/api');
     const response = await axios.post(`${apiUrl}/paste-excel-into-word`, payload);
 
     if (response.data.success) {
