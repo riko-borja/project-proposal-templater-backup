@@ -7,8 +7,11 @@
         <v-toolbar flat color="transparent" class="mb-4">
           <v-toolbar-title class="headline">{{ toolbarTitle || 'Choose Options' }}</v-toolbar-title>
         </v-toolbar>
+        <p class="page-intro">
+          Review document structure decisions separately from checklist marking decisions before generating the proposal.
+        </p>
         <!-- Collapse/Expand All Button -->
-        <div class="d-flex justify-center mb-4">
+        <div class="d-flex justify-center mb-4" v-if="sectionNodes.length > 0">
           <v-btn 
             @click="toggleAllSections" 
             class="ma-2" 
@@ -20,16 +23,59 @@
           </v-btn>
         </div>
 
-        <!-- Sections List -->
-        <v-list dense>
-          <SectionCheckbox
-            v-for="section in sections"
-            :key="section.id"
-            :section="section"
-            :all-collapsed="allCollapsed"
-            @update-checked="updateChecked"
-          />
-        </v-list>
+        <v-card class="group-card mb-6" elevation="2">
+          <v-card-title class="group-title">Document Structure / Sections to Include</v-card-title>
+          <v-card-subtitle class="group-subtitle">
+            Unchecked sections and subsections are excluded from the final generated proposal.
+          </v-card-subtitle>
+          <v-card-text>
+            <div v-if="sectionNodes.length === 0" class="empty-state">
+              No section inclusion tags were detected in this template.
+            </div>
+            <v-list v-else dense class="section-outline-list">
+              <v-card
+                v-for="section in sectionNodes"
+                :key="`section-${section.id}`"
+                class="section-root-card mb-3"
+                elevation="1"
+              >
+                <SectionCheckbox
+                  :section="section"
+                  :all-collapsed="allCollapsed"
+                  :level="0"
+                  parent-label-path=""
+                  @update-checked="updateChecked"
+                />
+              </v-card>
+            </v-list>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="group-card mb-6" elevation="1">
+          <v-card-title class="group-title">Checklist Items to Mark</v-card-title>
+          <v-card-subtitle class="group-subtitle">
+            These items remain visible in the final document. Checking an item adds a visible tick mark.
+          </v-card-subtitle>
+          <v-card-text>
+            <div v-if="toggleNodes.length === 0" class="empty-state">
+              No checklist toggle tags were detected in this template.
+            </div>
+            <v-list v-else dense>
+              <v-list-item
+                v-for="toggle in toggleNodes"
+                :key="`toggle-${toggle.id}`"
+                class="toggle-list-item"
+              >
+                <v-checkbox
+                  v-model="toggle.checked"
+                  :label="toggle.label"
+                  color="teal-darken-2"
+                  @change="updateChecked({ id: toggle.id, checked: toggle.checked })"
+                />
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+        </v-card>
 
         <!-- Submit Button -->
         <div class="d-flex justify-center mt-4">
@@ -109,6 +155,12 @@ export default {
     const toolbarTitle = computed(() => store.state.toolbarTitle); // Reactive access to toolbarTitle
 
     const allCollapsed = ref(false);
+    const sectionNodes = computed(() => {
+      return (sections.value || []).filter((item) => item.type !== 'toggle');
+    });
+    const toggleNodes = computed(() => {
+      return (sections.value || []).filter((item) => item.type === 'toggle');
+    });
     const isAnySectionChecked = computed(() => {
   // Enable button if there are no sections to check
   if (!sections.value || sections.value.length === 0) {
@@ -187,13 +239,55 @@ onUpdated(() => {
   setIndeterminate();
 });
 
+const hasCheckboxNodeShape = (node) => {
+  return (
+    node &&
+    typeof node === 'object' &&
+    typeof node.id === 'string' &&
+    typeof node.label === 'string' &&
+    typeof node.checked === 'boolean'
+  );
+};
+
+const hasToggleNode = (nodes) => {
+  return nodes.some((node) => {
+    if (!node || typeof node !== 'object') return false;
+    if (node.type === 'toggle') return true;
+    if (Array.isArray(node.children) && node.children.length > 0) {
+      return hasToggleNode(node.children);
+    }
+    return false;
+  });
+};
+
+const allNodesMatchCheckboxShape = (nodes) => {
+  return nodes.every((node) => {
+    if (!hasCheckboxNodeShape(node)) return false;
+    const children = Array.isArray(node.children) ? node.children : [];
+    return allNodesMatchCheckboxShape(children);
+  });
+};
+
+const isReusableCheckboxSectionsPayload = (sectionsPayload) => {
+  if (!Array.isArray(sectionsPayload) || sectionsPayload.length === 0) {
+    return false;
+  }
+
+  // Reuse only when payload is already CheckboxPage-compatible.
+  return hasToggleNode(sectionsPayload) || allNodesMatchCheckboxShape(sectionsPayload);
+};
+
 /**
  * Fetch and parse sections when the component is mounted
  */
 onMounted(async () => {
-  if (store.state.isNavigatingBack && store.state.sections.length > 0) {
+  const storedSections = store.state.sections;
+  const canReuseStoredSections =
+    store.state.isNavigatingBack && isReusableCheckboxSectionsPayload(storedSections);
+
+  if (canReuseStoredSections) {
     console.log('Navigating back: Loading sections from Vuex.');
-    sections.value = store.state.sections;
+    sections.value = storedSections;
     ensureCheckedStatePropagation(sections.value); // Ensure state is propagated correctly
     console.log('Sections loaded from Vuex and checked state verified:', sections.value);
   } else {
@@ -553,16 +647,16 @@ const prepareFinalOutput = () => {
               return [rangeKey, rangeValue];
             } else if (input.type === 'number') {
               // Handle number inputs
-              const numberKey = input.order !== undefined
+              const numberKey = input.renderKey || (input.order !== undefined
                 ? `number_input:${input.label}|order:${input.order}`
-                : `number_input:${input.label}`;
+                : `number_input:${input.label}`);
               console.log(`Preparing number input for ${numberKey}: ${input.value}`);
               return [numberKey, input.value];
             } else {
               // Handle other inputs
-              const inputKey = input.order !== undefined
+              const inputKey = input.renderKey || (input.order !== undefined
                 ? `input:${input.id}|order:${input.order}`
-                : `input:${input.id}`;
+                : `input:${input.id}`);
               console.log(`Preparing general input for ${inputKey}: ${input.value}`);
               return [inputKey, input.value];
             }
@@ -600,8 +694,8 @@ const prepareFinalOutput = () => {
 
         // Add Date Fields without "order"
       dynamicDateFields.value.forEach((dateField) => {
-        // Use only the `id` for the keys, without the "order" part
-        data[`date:${dateField.id}`] = dateField.value;
+        const dateKey = dateField.renderKey || `date:${dateField.id}`;
+        data[dateKey] = dateField.value;
         data[`quarter:${dateField.id}`] = dateField.quarter;
         data[`year:${dateField.id}`] = dateField.year;
       });
@@ -739,6 +833,8 @@ const prepareFinalOutput = () => {
       selectedSections,
       tableData,
       isAnySectionChecked,
+      sectionNodes,
+      toggleNodes,
       toggleAllSections, // Ensure this is returned
       allCollapsed,
       toolbarTitle,
@@ -751,6 +847,12 @@ const prepareFinalOutput = () => {
 .headline {
   font-weight: bold;
   font-size: 1.5rem;
+}
+
+.page-intro {
+  margin: 0 0 16px;
+  color: #455a64;
+  font-size: 0.95rem;
 }
 
 .v-btn {
@@ -775,5 +877,40 @@ const prepareFinalOutput = () => {
 
 .v-list-item:last-child {
   border-bottom: none; /* Remove border for the last item */
+}
+
+.group-card {
+  border: 1px solid #e0e0e0;
+}
+
+.group-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.group-subtitle {
+  margin-top: 4px;
+  color: #546e7a;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.section-outline-list {
+  padding-top: 4px;
+}
+
+.section-root-card {
+  border-left: 4px solid #00796b;
+  border-radius: 8px;
+}
+
+.toggle-list-item {
+  border-bottom: 1px solid #efefef;
+}
+
+.empty-state {
+  color: #607d8b;
+  font-size: 0.9rem;
+  padding: 8px 0;
 }
 </style>

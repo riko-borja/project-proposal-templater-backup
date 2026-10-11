@@ -32,6 +32,7 @@ import SimpleExplorer from '@/components/SimpleExplorer.vue';
 import IntentRecognitionPage from '@/components/IntentRecognitionPage.vue';
 import SharePoint from '@/components/SharePoint.vue';
 import AdminFieldManager from '@/components/AdminFieldManager.vue';
+import TagAuthoringPage from '@/components/TagAuthoringPage.vue';
 
 
 const routes = [
@@ -69,6 +70,7 @@ const routes = [
   { path: '/dynamic-table-page', name: 'dynamicTablePage', component: DynamicTablePage},
   { path: '/share-point', name: 'sharePoint', component: SharePoint},
   { path: '/admin-field-manager', name: 'adminFieldManager', component: AdminFieldManager},
+  { path: '/tag-authoring', name: 'tagAuthoringPage', component: TagAuthoringPage },
 
 ];
 

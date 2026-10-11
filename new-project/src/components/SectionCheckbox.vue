@@ -1,5 +1,13 @@
 <template>
-  <v-list-item>
+  <v-list-item
+    class="section-node"
+    :class="{
+      'nested-node': level > 0,
+      'toggle-node': isToggle,
+      'top-node': level === 0 && !isToggle
+    }"
+    :style="{ marginLeft: `${indent}px` }"
+  >
     <v-list-item-content>
       <v-list-item-title>
         <div class="d-flex align-center">
@@ -27,8 +35,14 @@
             small
             class="ml-2"
           >
-            <v-icon small>{{ localSection.collapsed ? 'mdi-chevron-right' : 'mdi-chevron-down' }}</v-icon>
-          </v-btn>
+              <v-icon small>{{ localSection.collapsed ? 'mdi-chevron-right' : 'mdi-chevron-down' }}</v-icon>
+            </v-btn>
+        </div>
+        <div v-if="!isToggle && level > 0 && parentLabelPath" class="context-hint">
+          Under: {{ parentLabelPath }}
+        </div>
+        <div v-if="!isToggle" class="node-kind">
+          {{ level === 0 ? 'Main section' : 'Subsection' }}
         </div>
       </v-list-item-title>
 
@@ -40,6 +54,8 @@
             :key="child.id"
             :section="child"
             :indent="indent + 20"
+            :level="level + 1"
+            :parent-label-path="nodePath"
             :parent-checked="isChecked"
             :all-collapsed="allCollapsed"
             @update-checked="emitUpdateChecked"
@@ -67,6 +83,14 @@ export default {
     allCollapsed: {
       type: Boolean,
       default: false,
+    },
+    level: {
+      type: Number,
+      default: 0,
+    },
+    parentLabelPath: {
+      type: String,
+      default: '',
     },
   },
   data() {
@@ -97,6 +121,11 @@ export default {
       `Rendered Label for Section: ${this.localSection.label}, Label: ${this.localSection.label}`
     );
     return this.localSection.label; // For non-toggles, return label as-is
+  },
+  nodePath() {
+    return this.parentLabelPath
+      ? `${this.parentLabelPath} > ${this.localSection.label}`
+      : this.localSection.label;
   },
 },
 
@@ -132,11 +161,44 @@ export default {
   padding-left: 0; /* Remove default padding */
 }
 
+.section-node {
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.top-node {
+  background: #fafafa;
+}
+
+.nested-node {
+  border-left: 2px solid #cfd8dc;
+  padding-left: 8px;
+}
+
+.toggle-node {
+  background: transparent;
+  border-left: none;
+}
+
 .v-checkbox {
   margin-left: 0; /* Align checkbox to the left */
 }
 
 .v-icon {
   font-size: 18px; /* Adjust the icon size */
+}
+
+.context-hint {
+  font-size: 0.78rem;
+  color: #607d8b;
+  margin: -2px 0 2px 40px;
+}
+
+.node-kind {
+  font-size: 0.75rem;
+  color: #78909c;
+  margin: -2px 0 2px 40px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 </style>

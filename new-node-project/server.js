@@ -44,6 +44,7 @@ const logRoutes = require('./routes/logs');
 const dataRoutes = require('./routes/data');
 const imageRoutes = require('./routes/image');
 const sharePointRoutes = require('./routes/sharepoint');
+const tagAuthoringRoutes = require('./routes/tagAuthoring');
 
 
 // Mount Routes
@@ -54,6 +55,7 @@ app.use('/api/logs', logRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/sharepoint', sharePointRoutes);
+app.use('/api/tag-authoring', tagAuthoringRoutes);
 
 // Serve index.html for any other routes to enable client-side routing
 app.get('*', (req, res) => {

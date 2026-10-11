@@ -1047,6 +1047,7 @@ const loadTemplateInputs = async () => {
 
   const dateData = dynamicDateFields.value.map((dateField) => ({
     id: dateField.id,
+    renderKey: dateField.renderKey,
     value: dateField.value,
     year: dateField.year,
     quarter: dateField.quarter,

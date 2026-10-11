@@ -70,6 +70,14 @@
           </v-list-item-icon>
           <v-list-item-title>Process Flow Chart</v-list-item-title>
         </v-list-item>
+
+        <!-- Tag Authoring -->
+        <v-list-item @click="navigateToTagAuthoring" class="sidebar-item">
+          <v-list-item-icon>
+            <v-icon>mdi-tag-edit</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Tag Authoring</v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
 
@@ -424,6 +432,10 @@ selectedUsername() {
     },
     navigateToFlowChartComponent() {
       this.$router.push({ name: 'flowChartComponent' });
+      this.drawer = false;
+    },
+    navigateToTagAuthoring() {
+      this.$router.push({ name: 'tagAuthoringPage' });
       this.drawer = false;
     },
 

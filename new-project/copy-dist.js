@@ -6,7 +6,7 @@ const notifier = require('node-notifier'); // Optional: Remove if not using noti
 console.log('Starting copy-dist.js');
 
 const source = path.resolve(__dirname, 'dist/**/*');
-const destination = 'C:/Users/rikog/modified front ends october 2024/new-node-project/dist';
+const destination = 'C:/Projects/project_proposal_templater/new-node-project/dist';
 
 console.log(`Source path: ${source}`);
 console.log(`Destination path: ${destination}`);

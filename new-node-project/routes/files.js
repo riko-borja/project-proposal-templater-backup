@@ -4,6 +4,8 @@ const router = express.Router();
 const multer = require('multer');
 const mongoose = require('mongoose');
 const { Readable } = require('stream');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const { getOrCreateBucket, Folder, newConnection } = require('../models/newConnection');
 const { GridFSBucket } = require('mongodb');
 const { getFileBufferFromGridFS, saveFileBufferToGridFS } = require('../utils/gridFsHelpers');
@@ -14,6 +16,35 @@ const Docxtemplater = require('docxtemplater');
 
 // Configure Multer for file uploads (memory storage)
 const upload = multer({ storage: multer.memoryStorage() });
+const ONLYOFFICE_TOKEN_SECRET =
+  process.env.ONLYOFFICE_JWT_SECRET ||
+  process.env.JWT_SECRET_KEY ||
+  'defaultsecret';
+
+const normalizeBucketName = (value) => {
+  if (typeof value !== 'string') return '';
+  return value.trim();
+};
+
+const buildOnlyOfficeDocumentKey = ({ fileId, bucketName, uploadDate }) => {
+  const raw = `${bucketName}|${fileId}|${new Date(uploadDate || Date.now()).toISOString()}`;
+  return crypto.createHash('sha1').update(raw).digest('hex').slice(0, 20);
+};
+
+const getOldWordBucket = async () => {
+  await connectionReady;
+  return getWordGridfsBucket();
+};
+
+const resolveViewerBucket = async (bucketName) => {
+  const normalizedBucketName = normalizeBucketName(bucketName);
+  if (normalizedBucketName) {
+    return { bucket: getOrCreateBucket(normalizedBucketName), bucketName: normalizedBucketName };
+  }
+
+  // Backward-compatibility path for legacy preview flow where no bucketName was passed.
+  return { bucket: await getOldWordBucket(), bucketName: 'fs' };
+};
 
 // Process Dropdown Logic Endpoint
 router.post('/process-dropdown-logic', authenticateToken, async (req, res) => {
@@ -695,37 +726,69 @@ router.post('/upload-generated-document', authenticateToken, upload.single('file
 
 // Generate Editor URL Endpoint
 router.post('/generate-editor-url', async (req, res) => {
-  const { fileId } = req.body;
+  const { fileId, bucketName } = req.body || {};
 
   if (!fileId) {
     return res.status(400).json({ error: 'fileId is required' });
   }
 
+  if (!mongoose.Types.ObjectId.isValid(fileId)) {
+    return res.status(400).json({ error: 'Invalid fileId format' });
+  }
+
   try {
+    const { bucket, bucketName: resolvedBucketName } = await resolveViewerBucket(bucketName);
     const _id = new mongoose.Types.ObjectId(fileId);
-    const files = await wordGridfsBucket.find({ _id }).toArray();
+    const files = await bucket.find({ _id }).toArray();
 
     if (files.length === 0) {
-      return res.status(404).json({ error: 'File not found' });
+      return res.status(404).json({
+        error: `File not found for fileId "${fileId}" in bucket "${resolvedBucketName}".`,
+      });
     }
 
     const file = files[0];
-    const documentKey = generateDocumentKey();
-    const documentUrl = `http://127.0.0.1:5001/document/${fileId}`;
+    const docRef = {
+      fileId: String(file?._id || '').trim(),
+      bucketName: String(resolvedBucketName || '').trim(),
+    };
+
+    if (!docRef.fileId || !docRef.bucketName) {
+      console.error('Failed to build ONLYOFFICE docRef payload', {
+        fileId: docRef.fileId,
+        bucketName: docRef.bucketName,
+      });
+      return res.status(500).json({ error: 'Failed to build document token payload.' });
+    }
+
+    const downloadToken = jwt.sign(
+      {
+        docRef,
+      },
+      ONLYOFFICE_TOKEN_SECRET,
+      { expiresIn: '1h' }
+    );
+    const documentKey = buildOnlyOfficeDocumentKey({
+      fileId: String(fileId),
+      bucketName: resolvedBucketName,
+      uploadDate: file.uploadDate,
+    });
+    const publicBaseUrl = process.env.PUBLIC_API_URL || process.env.BACKEND_BASE_URL || 'http://host.docker.internal:5001';
+    const documentUrl = `${publicBaseUrl}/api/files/document/${fileId}?bucketName=${encodeURIComponent(resolvedBucketName)}&docToken=${encodeURIComponent(downloadToken)}`;
 
     const document = {
       fileType: "docx",
       key: documentKey,
       title: file.filename,
       url: documentUrl,
-      permissions: { edit: true, review: true },
+      permissions: { edit: false, review: false },
     };
 
     const editorConfig = {
-      mode: "edit",
+      mode: "view",
       user: {
-        id: req.user.userId, // Extracted from JWT
-        name: req.user.username,
+        id: 'tag-authoring',
+        name: 'Tag Authoring',
       },
     };
 
@@ -733,10 +796,15 @@ router.post('/generate-editor-url', async (req, res) => {
       document,
       documentType: "word",
       editorConfig,
+      docRef,
     };
 
-    const token = jwt.sign(config, process.env.JWT_SECRET_KEY || 'defaultsecret', { expiresIn: '1h' });
-    res.json({ document, token });
+    const token = jwt.sign(config, ONLYOFFICE_TOKEN_SECRET, { expiresIn: '1h' });
+    res.json({
+      document,
+      token,
+      bucketName: resolvedBucketName,
+    });
   } catch (error) {
     console.error('Error generating editor URL:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -746,45 +814,99 @@ router.post('/generate-editor-url', async (req, res) => {
 // Download Document Endpoint
 router.get('/document/:fileId', async (req, res) => {
   const authHeader = req.headers['authorization'];
+  const tokenFromHeader = authHeader && authHeader.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : '';
+  const tokenFromQuery = typeof req.query.token === 'string' ? req.query.token.trim() : '';
+  const docTokenFromQuery = typeof req.query.docToken === 'string' ? req.query.docToken.trim() : '';
+  const token = docTokenFromQuery || tokenFromHeader || tokenFromQuery;
+  const tokenSource = docTokenFromQuery ? 'docToken' : (tokenFromHeader ? 'authorization' : (tokenFromQuery ? 'token' : 'none'));
+  const { fileId: paramFileId } = req.params;
+  const requestedBucketName = normalizeBucketName(req.query.bucketName);
 
-  if (!authHeader) {
+  console.log('[ONLYOFFICE document] Incoming request', {
+    fileId: paramFileId,
+    requestedBucketName,
+    hasAuthHeader: Boolean(authHeader),
+    hasTokenQuery: Boolean(tokenFromQuery),
+    hasDocTokenQuery: Boolean(docTokenFromQuery),
+    tokenSource,
+  });
+
+  if (!token) {
+    console.error('[ONLYOFFICE document] Rejecting request: missing token');
     return res.status(401).json({ error: 'No token provided' });
   }
 
-  const token = authHeader.replace('Bearer ', '');
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || 'defaultsecret');
+    const decoded = jwt.verify(token, ONLYOFFICE_TOKEN_SECRET);
+    const tokenFileId = String(decoded?.docRef?.fileId || '');
+    const tokenBucketName = normalizeBucketName(decoded?.docRef?.bucketName);
+    console.log('[ONLYOFFICE document] Token verified', {
+      tokenFileId,
+      tokenBucketName,
+    });
 
-    const { fileId } = req.params;
-
-    if (decoded.document && decoded.document.key !== fileId) {
-      return res.status(403).json({ error: 'Access denied: document key mismatch' });
+    if (!mongoose.Types.ObjectId.isValid(paramFileId)) {
+      console.error('[ONLYOFFICE document] Rejecting request: invalid fileId format', { fileId: paramFileId });
+      return res.status(400).json({ error: 'Invalid fileId format' });
     }
 
-    const downloadStream = wordGridfsBucket.openDownloadStream(new mongoose.Types.ObjectId(fileId));
+    if (!tokenFileId || tokenFileId !== String(paramFileId)) {
+      console.error('[ONLYOFFICE document] Rejecting request: file mismatch', {
+        tokenFileId,
+        paramFileId: String(paramFileId),
+      });
+      return res.status(403).json({ error: 'Access denied: file mismatch' });
+    }
 
-    // Fetch the file details to set correct headers
-    const files = await wordGridfsBucket.find({ _id: new mongoose.Types.ObjectId(fileId) }).toArray();
+    if (!tokenBucketName || (requestedBucketName && requestedBucketName !== tokenBucketName)) {
+      console.error('[ONLYOFFICE document] Rejecting request: bucket mismatch', {
+        requestedBucketName,
+        tokenBucketName,
+      });
+      return res.status(403).json({ error: 'Access denied: bucket mismatch' });
+    }
+
+    const { bucket } = await resolveViewerBucket(tokenBucketName);
+    const fileObjectId = new mongoose.Types.ObjectId(paramFileId);
+    const files = await bucket.find({ _id: fileObjectId }).toArray();
+
     if (files.length === 0) {
+      console.error('[ONLYOFFICE document] Rejecting request: file not found', {
+        fileId: paramFileId,
+        bucketName: tokenBucketName,
+      });
       return res.status(404).json({ error: 'File not found' });
     }
 
     const file = files[0];
+    const downloadStream = bucket.openDownloadStream(fileObjectId);
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Type', file.contentType || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+    console.log('[ONLYOFFICE document] Streaming file response', {
+      fileId: paramFileId,
+      bucketName: tokenBucketName,
+      filename: file.filename,
+      contentType: file.contentType || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      length: file.length,
+    });
 
     downloadStream.pipe(res).on('error', (err) => {
-      console.error('Error during file download:', err);
+      console.error('[ONLYOFFICE document] Stream error during file download:', err);
       res.status(500).json({ message: 'Error downloading file' });
     });
 
     downloadStream.on('end', () => {
+      console.log('[ONLYOFFICE document] Stream completed', {
+        fileId: paramFileId,
+        bucketName: tokenBucketName,
+      });
       res.end();
     });
   } catch (err) {
-    console.error('JWT Verification Error:', err);
+    console.error('[ONLYOFFICE document] JWT verification failed:', err);
     return res.status(401).json({ error: 'Invalid token' });
   }
 });

@@ -77,6 +77,7 @@
       "POST"
     ],
     "middlewares": [
+      "authenticateToken",
       "anonymous"
     ]
   },
@@ -95,6 +96,7 @@
       "GET"
     ],
     "middlewares": [
+      "authenticateToken",
       "anonymous"
     ]
   },
@@ -331,6 +333,33 @@
   },
   {
     "path": "/api/sharepoint/save-configuration",
+    "methods": [
+      "POST"
+    ],
+    "middlewares": [
+      "anonymous"
+    ]
+  },
+  {
+    "path": "/api/tag-authoring/analyze-template",
+    "methods": [
+      "POST"
+    ],
+    "middlewares": [
+      "anonymous"
+    ]
+  },
+  {
+    "path": "/api/tag-authoring/replace-selected",
+    "methods": [
+      "POST"
+    ],
+    "middlewares": [
+      "anonymous"
+    ]
+  },
+  {
+    "path": "/api/tag-authoring/preview-highlight-checked",
     "methods": [
       "POST"
     ],

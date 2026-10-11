@@ -297,9 +297,9 @@ export const fetchTemplateAndParseData = async (docContent, store) => {
       const normalizedLabel = rawLabel.toLowerCase().replace(/[\s/]+/g, '_');
       const processedLabel = rawLabel.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
       const order = match[2] ? parseInt(match[2].trim(), 10) : null;
-    
+     
       // Construct tag key and value
-      const tagKey = `number_input:${normalizedLabel}${order !== null ? `|order:${order}` : ''}`;
+      const tagKey = `number_input:${rawLabel}${order !== null ? `|order:${order}` : ''}`;
       const tagValue = `{${tagKey}}`;
     
       // Log matched tag details
@@ -315,6 +315,7 @@ export const fetchTemplateAndParseData = async (docContent, store) => {
         rawLabel, // Original label
         normalizedLabel, // For consistent backend mapping
         label: processedLabel, // Standardized label for display
+        renderKey: tagKey, // Canonical key for final Docxtemplater rendering
         order,
         type: 'number',
       });
@@ -325,6 +326,7 @@ export const fetchTemplateAndParseData = async (docContent, store) => {
       inputsMap[input.normalizedLabel] = {
         id: input.normalizedLabel,
         label: input.label,
+        renderKey: input.renderKey,
         order: input.order,
         type: input.type,
         value: '', // Initialize value
@@ -556,18 +558,24 @@ while ((match = button_tooltipRegex.exec(text)) !== null) {
     
       const rawFieldName = match[1].trim(); // Extract raw field name
       const normalizedFieldName = rawFieldName.toLowerCase().replace(/\s+/g, '_'); // Normalize to snake_case
-      const order = match[2] ? parseInt(match[2].trim(), 10) : 999; // Assign `999` if no order is provided
+      const hasOrder = Boolean(match[2]);
+      const order = hasOrder ? parseInt(match[2].trim(), 10) : 999; // Keep sorting behavior only
+      const tagKey = hasOrder
+        ? `input:${rawFieldName}|order:${match[2].trim()}`
+        : `input:${rawFieldName}`;
     
       if (!inputsMap[normalizedFieldName]) {
         inputsMap[normalizedFieldName] = {
           id: normalizedFieldName,
           label: rawFieldName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+          renderKey: tagKey, // Canonical key for final Docxtemplater rendering
           value: '', // Initial value can be empty
           order, // Include parsed order
         };
+      } else if (!inputsMap[normalizedFieldName].renderKey) {
+        inputsMap[normalizedFieldName].renderKey = tagKey;
       }
     
-      const tagKey = `input:${normalizedFieldName}|order:${order}`;
       const fullTag = `{${tagKey}}`;
       inputsTagMap[tagKey] = fullTag;
     }
@@ -922,6 +930,7 @@ export const fetchDateFields = async (docContent) => {
         dateFields.set(tagKey, {
           id: fieldName,
           label: fieldName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()), // Format label
+          renderKey: tagKey, // Canonical key for final Docxtemplater rendering
           value: fullTag, // Include tag as value for Vuex compatibility
           showDatePicker: false, // Default picker visibility
           ...(hasOrder && { order }), // Add `order` only if it exists
